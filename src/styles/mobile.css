@@ -1,0 +1,323 @@
+/* Mobile-specific styles and optimizations */
+
+/* Viewport and safe area utilities */
+:root {
+  --vh: 1vh;
+}
+
+/* Safe area inset utilities */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+.mt-safe {
+  margin-top: env(safe-area-inset-top);
+}
+
+.ml-safe {
+  margin-left: env(safe-area-inset-left);
+}
+
+.mr-safe {
+  margin-right: env(safe-area-inset-right);
+}
+
+/* Touch optimizations */
+.tap-highlight-transparent {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.-webkit-overflow-scrolling-touch {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar for mobile webkit */
+@media (max-width: 768px) {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-track-transparent {
+    scrollbar-color: transparent transparent;
+  }
+
+  .scrollbar-thumb-border-default {
+    scrollbar-color: var(--color-border-default) transparent;
+  }
+
+  /* Webkit scrollbars for mobile */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--color-border-default);
+    border-radius: 2px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-foreground-secondary);
+  }
+}
+
+/* iOS specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix for iOS Safari viewport height issues */
+  .min-h-screen-ios {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  .h-screen-ios {
+    height: 100vh;
+    height: -webkit-fill-available;
+  }
+
+  /* Disable zoom on double tap */
+  * {
+    touch-action: manipulation;
+  }
+
+  /* Smooth scrolling for iOS */
+  .overflow-scroll-ios {
+    -webkit-overflow-scrolling: touch;
+    overflow-scrolling: touch;
+  }
+}
+
+/* Android specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) and (min-resolution: .001dpcm) {
+  /* Android Chrome specific styles */
+  .android-scroll {
+    overscroll-behavior: contain;
+  }
+}
+
+/* Responsive text sizing for mobile readability */
+@media (max-width: 640px) {
+  /* Scale down large text on small screens */
+  .text-5xl {
+    @apply text-3xl;
+  }
+
+  .text-4xl {
+    @apply text-2xl;
+  }
+
+  .text-3xl {
+    @apply text-xl;
+  }
+
+  /* Ensure minimum touch targets */
+  button, a, input, textarea, select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Improve form input experience on mobile */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  textarea {
+    font-size: 16px; /* Prevent zoom on focus in iOS Safari */
+  }
+}
+
+/* Orientation-specific styles */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Compact landscape mode adjustments */
+  .landscape-compact {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .landscape-compact h1 {
+    @apply text-2xl;
+  }
+
+  .landscape-compact h2 {
+    @apply text-xl;
+  }
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Crisp borders on high DPI displays */
+  .border-crisp {
+    border-width: 0.5px;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode mobile optimizations */
+@media (prefers-color-scheme: dark) and (max-width: 768px) {
+  /* Reduce brightness for OLED screens */
+  .mobile-dark-bg {
+    background-color: #0a0a0a;
+  }
+
+  .mobile-dark-text {
+    color: #e5e5e5;
+  }
+}
+
+/* Pull-to-refresh prevention */
+.no-pull-to-refresh {
+  overscroll-behavior-y: contain;
+}
+
+/* Focus visible improvements for mobile */
+@media (max-width: 768px) {
+  :focus-visible {
+    outline: 2px solid var(--color-magic-teal);
+    outline-offset: 2px;
+  }
+
+  /* Remove focus outline for mouse users */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+/* Improve button press feedback */
+@media (max-width: 768px) {
+  .mobile-button {
+    transition: transform 0.1s ease-out, background-color 0.2s ease-out;
+  }
+
+  .mobile-button:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Swipe gesture indicators */
+.swipe-indicator {
+  position: relative;
+}
+
+.swipe-indicator::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid var(--color-foreground-secondary);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  opacity: 0.6;
+}
+
+/* Loading skeleton animations optimized for mobile */
+@media (max-width: 768px) {
+  @keyframes mobile-skeleton {
+    0% {
+      background-position: -200px 0;
+    }
+    100% {
+      background-position: calc(200px + 100%) 0;
+    }
+  }
+
+  .skeleton-mobile {
+    background: linear-gradient(
+      90deg,
+      var(--color-card-hover) 25%,
+      var(--color-border-default) 37%,
+      var(--color-card-hover) 63%
+    );
+    background-size: 400px 100%;
+    animation: mobile-skeleton 1.4s ease-in-out infinite;
+  }
+}
+
+/* Utility classes for mobile-specific behavior */
+.mobile-only {
+  @media (min-width: 769px) {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+.tablet-only {
+  @media (max-width: 767px), (min-width: 1025px) {
+    display: none !important;
+  }
+}
+
+/* Improve text selection on mobile */
+@media (max-width: 768px) {
+  ::selection {
+    background-color: var(--color-magic-teal);
+    color: white;
+  }
+
+  ::-moz-selection {
+    background-color: var(--color-magic-teal);
+    color: white;
+  }
+}
+
+/* Card hover effects for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .card-touch {
+    transition: background-color 0.2s ease-out;
+  }
+
+  .card-touch:active {
+    background-color: var(--color-card-hover);
+  }
+}
+
+/* Optimize animations for mobile performance */
+@media (max-width: 768px) {
+  .mobile-optimized-animation {
+    will-change: transform;
+    transform: translateZ(0); /* Force GPU acceleration */
+  }
+
+  /* Reduce animation complexity on older devices */
+  @media (max-width: 480px) {
+    .complex-animation {
+      animation: none !important;
+      transition: opacity 0.2s ease-out !important;
+    }
+  }
+}
