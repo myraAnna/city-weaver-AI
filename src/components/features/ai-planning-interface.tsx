@@ -358,7 +358,9 @@ const AIPlanningInterface = ({
                     <> and <span className="text-magic-teal font-medium">{contextData.group.children.length} child{contextData.group.children.length > 1 ? 'ren' : ''}</span></>
                   )}
                   {' '}exploring <span className="text-magic-teal font-medium">{contextData.location}</span> for{' '}
-                  <span className="text-magic-teal font-medium">{contextData.duration}h</span>
+                  <span className="text-magic-teal font-medium">
+                    {Math.ceil((new Date(contextData.endDate).getTime() - new Date(contextData.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1} day{Math.ceil((new Date(contextData.endDate).getTime() - new Date(contextData.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 !== 1 ? 's' : ''}
+                  </span>
                 </p>
               </motion.div>
             )}

@@ -14,8 +14,8 @@ export interface AppState {
       longitude: number;
     };
     group: TravelGroup;
-    duration: number;
-    timeOfDay: 'morning' | 'afternoon' | 'evening' | 'full-day';
+    startDate: string;
+    endDate: string;
     budget: number;
     mobilityNeeds: string[];
   } | null;

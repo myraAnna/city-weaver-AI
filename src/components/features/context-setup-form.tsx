@@ -251,21 +251,34 @@ const ContextSetupForm = ({
             transition={{ duration: 0.5, delay: 0.1 }}
             className="flex justify-center"
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               {steps.map((step, index) => (
                 <div key={step} className="flex items-center">
-                  <div
-                    className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-colors duration-200 ${
-                      index <= currentStep
-                        ? 'bg-gradient-to-r from-magic-teal to-magic-purple text-white'
-                        : 'bg-card-hover text-foreground-secondary'
-                    }`}
-                  >
-                    {index + 1}
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold transition-all duration-300 ${
+                        index <= currentStep
+                          ? 'bg-gradient-to-r from-magic-teal to-magic-purple text-white shadow-lg scale-110'
+                          : 'bg-card-hover text-foreground-secondary border-2 border-border-default'
+                      }`}
+                    >
+                      {index < currentStep ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        index + 1
+                      )}
+                    </div>
+                    <div className={`mt-2 text-xs font-medium text-center transition-colors duration-200 ${
+                      index <= currentStep ? 'text-foreground' : 'text-foreground-secondary'
+                    }`}>
+                      {step}
+                    </div>
                   </div>
                   {index < steps.length - 1 && (
                     <div
-                      className={`w-8 h-[2px] mx-2 transition-colors duration-200 ${
+                      className={`w-8 sm:w-12 h-[3px] mx-2 transition-all duration-300 rounded-full ${
                         index < currentStep
                           ? 'bg-gradient-to-r from-magic-teal to-magic-purple'
                           : 'bg-border-default'

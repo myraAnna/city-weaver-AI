@@ -15,8 +15,8 @@ export default function ContextSetupPage() {
       location: data.location,
       coordinates: data.coordinates,
       group: data.group,
-      duration: data.duration,
-      timeOfDay: data.timeOfDay,
+      startDate: data.startDate,
+      endDate: data.endDate,
       budget: data.budget,
       mobilityNeeds: data.mobilityNeeds,
     };

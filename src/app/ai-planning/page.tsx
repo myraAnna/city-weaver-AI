@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { AIPlanningInterface } from '@/components/features';
 import { travelPersonas } from '@/data/travel-personas';
 import { useTravelContext, useSelectedStyles, useAppActions } from '@/contexts/app-context';
@@ -44,8 +44,8 @@ export default function AIPlanningPage() {
       adults: 2,
       children: [{ age: 8 }],
     },
-    duration: 6,
-    timeOfDay: 'full-day' as const,
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow
     budget: 150,
     mobilityNeeds: ['public-transport', 'family-friendly'],
   };
