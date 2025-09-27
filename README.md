@@ -32,7 +32,58 @@ It's not just directions. It's experiencing Malaysia through someone who calls i
 
 **vs Travel Apps:** Cultural context and local secrets, not just point A to point B directions
 
+## Project Architecture
+
+### Directory Structure
+- `src/app/` - Next.js App Router pages
+- `src/components/` - Reusable UI components and features
+  - `ui/` - Base UI components (buttons, cards, modals)
+  - `features/` - Business logic components
+  - `forms/` - Form-related components
+  - `layout/` - Layout and navigation components
+- `src/hooks/` - Custom React hooks for API calls and state
+- `src/services/` - API services and data fetching
+- `src/contexts/` - React Context providers
+- `src/utils/` - Utility functions and helpers
+- `src/types/` - TypeScript type definitions
+- `src/data/` - Static data and mock data
+
+## Key Features
+- AI-powered travel planning interface
+- Interactive conversational chat system
+- Real-time itinerary management
+- Maps integration and route planning
+- Weather API integration
+- Travel personas and style selection
+- Responsive mobile-first design
+- Context-aware planning system
+
+## API Integration
+- Places API for location data
+- Weather API for real-time conditions
+- Routes API for navigation
+- Mock API for development
+- Chat API for conversational interface
+
+## Tools & Technologies
+
+### Core Framework
+- **Next.js 15.5.4** - React framework with TypeScript support
+- **React 19** - Frontend UI library
+- **TypeScript 5** - Type-safe JavaScript
+
+### Design System
+The project uses a custom dark-first color palette featuring:
+- Deep near-black backgrounds (#0A0A0A, #111111)
+- Off-white text (#F5F5F5) with secondary grays
+- Magic gradient from teal (#00D4AA) to lavender (#B794F6)
+- Custom animations including glow effects, shimmers, and weave patterns
+- Inter font family with JetBrains Mono for code
+
 ## 🏃 Getting Started
+
+### 🔗 Related Repositories
+- **Backend API:** [TravelJer_backend](https://github.com/BiQiB7/TravelJer_backend)
 
 [Add installation and setup instructions]
 ```bash
