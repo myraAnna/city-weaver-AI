@@ -137,23 +137,16 @@ const ContextSetupForm = ({
   };
 
   const nextStep = () => {
-    console.log('🔴 nextStep called, currentStep:', currentStep);
-    console.log('🔴 steps.length:', steps.length);
-
     // Validate current step before proceeding
     const isCurrentStepValid = validateCurrentStep();
-    console.log('🔴 isCurrentStepValid:', isCurrentStepValid);
 
     if (!isCurrentStepValid) {
-      console.log('🔴 Validation failed, returning early');
       return;
     }
 
     if (currentStep < steps.length - 1) {
-      console.log('🔴 Moving to next step');
       setCurrentStep(prev => prev + 1);
     } else {
-      console.log('🔴 Final step, calling handleSubmit');
       handleSubmit();
     }
   };
@@ -189,15 +182,7 @@ const ContextSetupForm = ({
   };
 
   const handleSubmit = () => {
-    console.log('🟡 handleSubmit called');
-    console.log('🟡 Current form data:', formData);
-    console.log('🟡 Current errors:', errors);
-    console.log('🟡 selectedLocationData:', selectedLocationData);
-    console.log('🟡 children:', children);
-    console.log('🟡 mobilityNeeds:', mobilityNeeds);
-
     const isFormValid = validateAllFields();
-    console.log('🟡 isFormValid:', isFormValid);
 
     if (isFormValid) {
       const finalData: ContextSetupData = {
@@ -217,11 +202,8 @@ const ContextSetupForm = ({
       console.log('🗺️ Location value:', finalData.location);
       console.log('📍 Coordinates:', finalData.coordinates);
       console.log('📊 Complete final data:', finalData);
-      console.log('🟡 Calling onFormSubmit');
 
       onFormSubmit?.(finalData);
-    } else {
-      console.log('🟡 Form validation failed');
     }
   };
 

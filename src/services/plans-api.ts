@@ -5,10 +5,6 @@
 
 import { apiClient, APIResponse } from './api-client';
 import { PersonaGenerationResponse } from './personas-api';
-import mockStopsData from '../data/mockstops.json';
-import mockData2 from '../data/mockdata2.json';
-import mockData from '../data/mockdata.json';
-import historyData from '../data/history.json';
 
 // Plan API Types (based on API schema)
 export interface PlanLocation {
@@ -129,13 +125,20 @@ export class PlansAPI {
    */
   async createPlan(data: CreatePlanRequest): Promise<APIResponse<Plan>> {
     console.log('🌐 PlansAPI.createPlan called with:', data);
+    console.log('🔍 DETAILED REQUEST DATA:');
+    console.log('  📝 Interests:', JSON.stringify(data.interests, null, 2));
+    console.log('  🏷️ Location Name:', data.location_name);
+    console.log('  📍 Location Coordinates:', JSON.stringify(data.location, null, 2));
+    console.log('  🔢 Data types:', {
+      location_name: typeof data.location_name,
+      latitude: typeof data.location.latitude,
+      longitude: typeof data.location.longitude
+    });
+    console.log('🔗 Making API call to /api/plans...');
+    console.log('📦 Full request payload:', JSON.stringify(data, null, 2));
 
     try {
-      const response: APIResponse<Plan> = {
-        data: mockStopsData as unknown as Plan,
-        status: 200,
-        ok: true
-      };
+      const response = await apiClient.post<Plan>('/api/plans', data);
       console.log('🌐 PlansAPI.createPlan response:', response);
       return response;
     } catch (error) {
@@ -155,66 +158,21 @@ export class PlansAPI {
    * Get specific plan by ID
    */
   async getPlan(planId: string): Promise<APIResponse<Plan>> {
-    try {
-      return {
-        data: mockStopsData as unknown as Plan,
-        status: 200,
-        ok: true
-      };
-    } catch (error) {
-      console.error('💥 PlansAPI.getPlan error:', error);
-      throw error;
-    }
+    return apiClient.get<Plan>(`/api/plans/${planId}`);
   }
 
   /**
    * Send chat message for plan re-planning
    */
   async chatWithPlan(planId: string, message: string): Promise<APIResponse<ChatResponse>> {
-    try {
-      // Store conversation in localStorage
-      const existingHistory = JSON.parse(localStorage.getItem('chat-history') || '[]');
-      const newConversation = {
-        planId,
-        message,
-        timestamp: new Date().toISOString()
-      };
-      existingHistory.push(newConversation);
-      localStorage.setItem('chat-history', JSON.stringify(existingHistory));
-      console.log('💬 Added conversation to localStorage:', newConversation);
-      
-      // Count messages for this plan
-      const planMessages = existingHistory.filter((conv: any) => conv.planId === planId);
-      const messageCount = planMessages.length;
-      
-      // Return mockdata2.json on second message, mockdata.json on first
-      const responseData = messageCount >= 2 ? mockData2 : mockData;
-      
-      return {
-        data: responseData as unknown as ChatResponse,
-        status: 200,
-        ok: true
-      };
-    } catch (error) {
-      console.error('💥 PlansAPI.chatWithPlan error:', error);
-      throw error;
-    }
+    return apiClient.post<ChatResponse>(`/api/plans/${planId}/chat`, { message });
   }
 
   /**
    * Confirm plan changes (make draft active)
    */
   async confirmPlan(planId: string): Promise<APIResponse<Plan>> {
-    try {
-      return {
-        data: mockData2 as unknown as Plan,
-        status: 200,
-        ok: true
-      };
-    } catch (error) {
-      console.error('💥 PlansAPI.confirmPlan error:', error);
-      throw error;
-    }
+    return apiClient.post<Plan>(`/api/plans/${planId}/confirm`);
   }
 
   /**
@@ -299,7 +257,7 @@ export class PlansAPI {
    * Check if plan has draft changes
    */
   hasDraftChanges(plan: Plan): boolean {
-    return false;
+    return !!(plan.draft_itinerary && plan.draft_itinerary.stops);
   }
 
   /**
