@@ -35,11 +35,7 @@ export const MobileLayout = ({
       className={cn(
         'flex flex-col w-full',
         fullHeight && 'h-screen min-h-screen',
-        safeArea && [
-          'pb-safe', // Safe area bottom padding
-          'pl-safe', // Safe area left padding
-          'pr-safe', // Safe area right padding
-        ],
+        safeArea && 'pb-safe pl-safe pr-safe',
         className
       )}
       style={{
@@ -141,20 +137,14 @@ export const MobileCard = ({
     <motion.div
       className={cn(
         'bg-card-default border border-border-default rounded-lg overflow-hidden',
-        interactive && [
+        interactive && cn(
           'cursor-pointer transition-all duration-200',
           isMobile
             ? 'active:bg-card-hover active:scale-[0.98]' // Touch feedback
             : 'hover:bg-card-hover hover:shadow-md'
-        ],
-        selected && [
-          'ring-2 ring-magic-teal bg-card-hover',
-          'border-magic-teal/30'
-        ],
-        isMobile && [
-          'min-h-[44px]', // Minimum touch target
-          'tap-highlight-transparent'
-        ],
+        ),
+        selected && 'ring-2 ring-magic-teal bg-card-hover border-magic-teal/30',
+        isMobile && 'min-h-[44px] tap-highlight-transparent',
         className
       )}
       onClick={onClick}

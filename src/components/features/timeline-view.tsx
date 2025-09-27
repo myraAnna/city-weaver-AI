@@ -465,8 +465,8 @@ const TravelSegmentCard = ({ segment, onGetDirections, onShowRoute }: TravelSegm
     } else if (segment.from && segment.to) {
       // Fallback to external maps
       const mapsUrl = generateMapsUrl(
-        segment.from.coordinates,
-        segment.to.coordinates,
+        { latitude: segment.from.coordinates.lat, longitude: segment.from.coordinates.lng },
+        { latitude: segment.to.coordinates.lat, longitude: segment.to.coordinates.lng },
         segment.mode as 'walking' | 'driving' | 'transit' | 'cycling'
       );
       window.open(mapsUrl, '_blank');

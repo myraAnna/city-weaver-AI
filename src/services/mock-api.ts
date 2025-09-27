@@ -1,5 +1,5 @@
 // Mock API service for development and testing
-import { TravelStyle, Stop, ItineraryData, AIInsight } from '@/types';
+import { TravelStyle, Stop, Itinerary, AIInsight } from '@/types';
 import { mockItinerary } from '@/data/mock-itinerary';
 
 // Simulate network delay
@@ -24,7 +24,7 @@ export class MockAIPlanningService {
       budget: number;
       mobilityNeeds: string[];
     }
-  ): Promise<MockAPIResponse<ItineraryData>> {
+  ): Promise<MockAPIResponse<Itinerary>> {
     await delay(2000); // Simulate API call delay
 
     // Generate a customized itinerary based on input
@@ -38,9 +38,9 @@ export class MockAIPlanningService {
   }
 
   static async regenerateItinerary(
-    currentItinerary: ItineraryData,
+    currentItinerary: Itinerary,
     userFeedback: string
-  ): Promise<MockAPIResponse<ItineraryData>> {
+  ): Promise<MockAPIResponse<Itinerary>> {
     await delay(1500);
 
     // Simulate itinerary modification based on feedback
@@ -54,14 +54,15 @@ export class MockAIPlanningService {
   }
 
   static async addStopToItinerary(
-    currentItinerary: ItineraryData,
+    currentItinerary: Itinerary,
     stopQuery: string,
     insertAfterStopId?: string
   ): Promise<MockAPIResponse<Stop>> {
     await delay(1000);
 
     // Generate a new stop based on query
-    const newStop = this.generateStopFromQuery(stopQuery, currentItinerary.location);
+    const location = currentItinerary.stops.length > 0 ? currentItinerary.stops[0].address : 'Unknown Location';
+    const newStop = this.generateStopFromQuery(stopQuery, location);
 
     return {
       data: newStop,
@@ -75,27 +76,18 @@ export class MockAIPlanningService {
 
     const insights: AIInsight[] = [
       {
-        id: `insight-${stopId}-1`,
         content: 'This location is particularly beautiful during sunset, offering stunning photo opportunities.',
         source: 'ai_generated',
-        confidence: 0.9,
-        type: 'tip',
         rating: 4.8,
       },
       {
-        id: `insight-${stopId}-2`,
         content: 'Local visitors recommend visiting early morning to avoid crowds and enjoy a peaceful experience.',
         source: 'reddit',
-        confidence: 0.85,
-        type: 'crowd_info',
         rating: 4.2,
       },
       {
-        id: `insight-${stopId}-3`,
         content: 'The nearby cafe serves excellent local coffee and traditional pastries.',
         source: 'google',
-        confidence: 0.75,
-        type: 'dining_suggestion',
         rating: 4.6,
       },
     ];
@@ -109,10 +101,10 @@ export class MockAIPlanningService {
 
   // Private helper methods
   private static customizeItinerary(
-    baseItinerary: ItineraryData,
+    baseItinerary: Itinerary,
     selectedStyles: TravelStyle[],
     context: any
-  ): ItineraryData {
+  ): Itinerary {
     // Customize stops based on selected travel styles
     let customizedStops = [...baseItinerary.stops];
 
@@ -150,28 +142,24 @@ export class MockAIPlanningService {
       }));
     }
 
-    // Adjust for group size and mobility needs
+    // Adjust for group size and mobility needs (simplified for now)
     if (context.mobilityNeeds.includes('wheelchair-accessible')) {
-      customizedStops = customizedStops.filter(stop =>
-        !stop.accessibility || stop.accessibility.wheelchairAccessible !== false
-      );
+      // For now, assume all stops are accessible - this could be enhanced later
+      // when accessibility data is added to the Stop interface
     }
 
     return {
-      ...baseItinerary,
-      id: `itinerary-${Date.now()}`,
-      location: context.location,
-      totalBudget: customizedStops.reduce((sum, stop) => sum + (stop.entryFee || 0), 0) * context.group.adults,
-      totalDuration: Math.min(customizedStops.reduce((sum, stop) => sum + stop.duration, 0), context.duration * 60),
       stops: customizedStops,
-      generatedAt: new Date().toISOString(),
+      travelSegments: baseItinerary.travelSegments,
+      totalDuration: Math.min(customizedStops.reduce((sum, stop) => sum + stop.duration, 0), context.duration * 60),
+      estimatedCost: customizedStops.reduce((sum, stop) => sum + (stop.entryFee || 0), 0) * context.group.adults,
     };
   }
 
   private static modifyItineraryBasedOnFeedback(
-    itinerary: ItineraryData,
+    itinerary: Itinerary,
     feedback: string
-  ): ItineraryData {
+  ): Itinerary {
     // Simple feedback processing - in real app this would use AI
     const lowerFeedback = feedback.toLowerCase();
 
@@ -179,14 +167,15 @@ export class MockAIPlanningService {
 
     if (lowerFeedback.includes('more food') || lowerFeedback.includes('restaurant')) {
       // Add a food stop
-      modifiedStops.push(this.generateFoodStop(itinerary.location));
+      const location = itinerary.stops.length > 0 ? itinerary.stops[0].address : 'Unknown Location';
+      modifiedStops.push(this.generateFoodStop(location));
     }
 
     if (lowerFeedback.includes('less walking') || lowerFeedback.includes('tired')) {
-      // Reduce walking time between stops
+      // Reduce duration at each stop to account for less walking
       modifiedStops = modifiedStops.map(stop => ({
         ...stop,
-        walkingTime: Math.max(5, (stop.walkingTime || 15) * 0.7),
+        duration: Math.max(30, stop.duration * 0.8),
       }));
     }
 
@@ -201,7 +190,6 @@ export class MockAIPlanningService {
     return {
       ...itinerary,
       stops: modifiedStops,
-      lastModified: new Date().toISOString(),
     };
   }
 
@@ -220,22 +208,10 @@ export class MockAIPlanningService {
       },
       duration: 45,
       rating: 4.0 + Math.random() * 1.0,
-      description: `A wonderful place to experience ${query.toLowerCase()} in ${location}.`,
       photos: ['https://images.unsplash.com/photo-1500375592092-40eb2168fd21?w=800'],
-      priceLevel: Math.floor(Math.random() * 3) + 1,
       entryFee: Math.random() > 0.5 ? Math.floor(Math.random() * 20) + 5 : 0,
-      openingHours: {
-        monday: { open: '09:00', close: '18:00' },
-        tuesday: { open: '09:00', close: '18:00' },
-        wednesday: { open: '09:00', close: '18:00' },
-        thursday: { open: '09:00', close: '18:00' },
-        friday: { open: '09:00', close: '18:00' },
-        saturday: { open: '09:00', close: '20:00' },
-        sunday: { open: '09:00', close: '20:00' },
-      },
       isOpen: true,
-      crowdLevel: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as any,
-      amenities: ['wifi', 'parking'],
+      crowdLevel: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)] as 'low' | 'medium' | 'high',
     };
   }
 
@@ -261,22 +237,10 @@ export class MockAIPlanningService {
       },
       duration: 60,
       rating: 4.0 + Math.random() * 1.0,
-      description: 'Delicious local cuisine and authentic flavors.',
       photos: ['https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800'],
-      priceLevel: 2,
       entryFee: 0,
-      openingHours: {
-        monday: { open: '11:00', close: '22:00' },
-        tuesday: { open: '11:00', close: '22:00' },
-        wednesday: { open: '11:00', close: '22:00' },
-        thursday: { open: '11:00', close: '22:00' },
-        friday: { open: '11:00', close: '23:00' },
-        saturday: { open: '11:00', close: '23:00' },
-        sunday: { open: '11:00', close: '22:00' },
-      },
       isOpen: true,
       crowdLevel: 'medium',
-      amenities: ['wifi', 'outdoor_seating'],
     };
   }
 

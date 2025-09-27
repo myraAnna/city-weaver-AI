@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { TravelStyle, Stop, TravelGroup, AIInsight, ItineraryData } from '@/types';
+import { TravelStyle, Stop, TravelGroup, Itinerary } from '@/types';
 
 // State interfaces
 export interface AppState {
@@ -17,7 +17,7 @@ export interface AppState {
   } | null;
 
   // Current itinerary
-  currentItinerary: ItineraryData | null;
+  currentItinerary: Itinerary | null;
   isGeneratingItinerary: boolean;
 
   // UI state
@@ -62,7 +62,7 @@ export type AppAction =
 
   // Itinerary management
   | { type: 'SET_GENERATING_ITINERARY'; payload: boolean }
-  | { type: 'SET_CURRENT_ITINERARY'; payload: ItineraryData }
+  | { type: 'SET_CURRENT_ITINERARY'; payload: Itinerary }
   | { type: 'UPDATE_STOP'; payload: { stopId: string; updates: Partial<Stop> } }
   | { type: 'REMOVE_STOP'; payload: string }
   | { type: 'ADD_STOP'; payload: Stop }
@@ -444,7 +444,7 @@ export const useAppActions = () => {
     dispatch({ type: 'SET_GENERATING_ITINERARY', payload: true });
   };
 
-  const setGeneratedItinerary = (itinerary: ItineraryData) => {
+  const setGeneratedItinerary = (itinerary: Itinerary) => {
     dispatch({ type: 'SET_CURRENT_ITINERARY', payload: itinerary });
   };
 

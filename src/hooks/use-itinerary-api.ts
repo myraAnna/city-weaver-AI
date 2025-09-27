@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useAppActions, useApp } from '@/contexts/app-context';
 import { MockAPI } from '@/services/mock-api';
-import { TravelStyle, ItineraryData, Stop } from '@/types';
+import { TravelStyle, Itinerary, Stop } from '@/types';
 
 export interface UseItineraryAPIReturn {
   generateItinerary: (

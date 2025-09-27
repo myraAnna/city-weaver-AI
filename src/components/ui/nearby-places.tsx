@@ -344,4 +344,3 @@ const PlaceCard = ({ place, onClick }: PlaceCardProps) => {
 };
 
 export { NearbyPlaces, PlaceCard };
-export type { NearbyPlacesProps };

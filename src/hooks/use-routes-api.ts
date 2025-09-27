@@ -9,9 +9,9 @@ import {
   Route,
   RouteRequest,
   DistanceMatrixRequest,
-  DistanceMatrixResponse,
-  PlaceLocation
+  DistanceMatrixResponse
 } from '@/services/routes-api';
+import { PlaceLocation } from '@/services/places-api';
 
 export interface UseRoutesAPIReturn {
   // State
