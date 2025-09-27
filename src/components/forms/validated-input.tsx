@@ -117,7 +117,8 @@ const ValidatedInput = ({
                 commonProps.onChange?.(e);
                 onSearch?.(e.target.value);
               }}
-              className="text-foreground bg-input-default"
+              style={{ color: 'rgb(136 136 136)' }}
+              className="bg-input-default placeholder:text-gray-500 dark:placeholder:text-gray-400"
               leftIcon={
                 <svg
                   className="h-4 w-4 text-foreground-secondary"

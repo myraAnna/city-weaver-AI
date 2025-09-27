@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { CenteredLayout, Stack, Container, Grid } from '@/components/layout';
-import { LocationInput, BudgetSlider, DurationSlider } from '@/components/forms';
+import { LocationInput } from '@/components/forms';
+import { Input } from '@/components/ui';
 import { TravelGroup } from '@/types';
 import { useFormValidation, validationSchemas } from '@/utils/validation';
 
@@ -21,8 +22,8 @@ export interface ContextSetupData {
     longitude: number;
   };
   group: TravelGroup;
-  duration: number; // in hours
-  timeOfDay: 'morning' | 'afternoon' | 'evening' | 'full-day';
+  startDate: string; // ISO date string
+  endDate: string; // ISO date string
   budget: number; // per person in local currency
   mobilityNeeds: string[];
   mustInclude?: string[];
@@ -37,12 +38,6 @@ const mobilityOptions = [
   { id: 'stroller-friendly', label: 'Stroller friendly', icon: '👶' },
 ];
 
-const timeOfDayOptions = [
-  { id: 'morning', label: 'Morning', description: '6AM - 12PM', icon: '🌅' },
-  { id: 'afternoon', label: 'Afternoon', description: '12PM - 6PM', icon: '☀️' },
-  { id: 'evening', label: 'Evening', description: '6PM - 12AM', icon: '🌆' },
-  { id: 'full-day', label: 'Full Day', description: '6AM - 10PM', icon: '🌍' },
-];
 
 const ContextSetupForm = ({
   onFormSubmit,
@@ -50,12 +45,19 @@ const ContextSetupForm = ({
   className,
 }: ContextSetupFormProps) => {
   // Memoize initial data to prevent recreation on every render
-  const initialData = useMemo(() => ({
-    location: '',
-    'group.adults': 2,
-    duration: 6,
-    budget: 100,
-  }), []);
+  const initialData = useMemo(() => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    return {
+      location: '',
+      'group.adults': 2,
+      startDate: today.toISOString().split('T')[0],
+      endDate: tomorrow.toISOString().split('T')[0],
+      budget: 100,
+    };
+  }, []);
 
   const {
     data: formData,
@@ -66,14 +68,13 @@ const ContextSetupForm = ({
   } = useFormValidation(initialData, validationSchemas.contextSetup);
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [timeOfDay, setTimeOfDay] = useState<ContextSetupData['timeOfDay']>('full-day');
   const [mobilityNeeds, setMobilityNeeds] = useState<string[]>([]);
   const [children, setChildren] = useState<{ age: number }[]>([]);
 
   const steps = [
     'Location',
     'Group Details',
-    'Timing & Budget',
+    'Dates & Budget',
     'Accessibility'
   ];
 
@@ -121,19 +122,6 @@ const ContextSetupForm = ({
     setChildren(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleTimeOfDayChange = (newTimeOfDay: ContextSetupData['timeOfDay']) => {
-    setTimeOfDay(newTimeOfDay);
-
-    // Adjust duration based on time of day
-    const defaultDurations = {
-      morning: 4,
-      afternoon: 5,
-      evening: 4,
-      'full-day': 8,
-    };
-
-    setFieldValue('duration', defaultDurations[newTimeOfDay]);
-  };
 
   const toggleMobilityNeed = (needId: string) => {
     setMobilityNeeds(prev =>
@@ -175,9 +163,12 @@ const ContextSetupForm = ({
         setFieldTouched('group.adults');
         return !errors['group.adults'] && formData['group.adults'] > 0;
       case 2:
-        setFieldTouched('duration');
+        setFieldTouched('startDate');
+        setFieldTouched('endDate');
         setFieldTouched('budget');
-        return !errors.duration && !errors.budget && formData.duration > 0 && formData.budget > 0;
+        return !errors.startDate && !errors.endDate && !errors.budget &&
+               formData.startDate && formData.endDate && formData.budget > 0 &&
+               new Date(formData.startDate) <= new Date(formData.endDate);
       case 3:
         return true;
       default:
@@ -196,8 +187,8 @@ const ContextSetupForm = ({
           adults: formData['group.adults'],
           children,
         },
-        duration: formData.duration,
-        timeOfDay,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
         budget: formData.budget,
         mobilityNeeds,
       };
@@ -218,7 +209,9 @@ const ContextSetupForm = ({
       case 1:
         return formData['group.adults'] > 0 && !errors['group.adults'];
       case 2:
-        return formData.duration > 0 && formData.budget > 0 && !errors.duration && !errors.budget;
+        return formData.startDate && formData.endDate && formData.budget > 0 &&
+               !errors.startDate && !errors.endDate && !errors.budget &&
+               new Date(formData.startDate) <= new Date(formData.endDate);
       case 3:
         return true;
       default:
@@ -308,6 +301,7 @@ const ContextSetupForm = ({
                       onBlur={handleLocationBlur}
                       error={errors.location}
                       required
+                      className="placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     />
 
                     <p className="text-sm text-foreground-secondary">
@@ -431,61 +425,73 @@ const ContextSetupForm = ({
                   <Stack spacing="lg">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-3">
-                        Time of Day
+                        Travel Dates
                       </label>
+                      <p className="text-sm text-foreground-secondary mb-4">
+                        Select your start and end dates for the trip
+                      </p>
                       <Grid cols={{ default: 2 }} gap="md">
-                        {timeOfDayOptions.map((option) => (
-                          <Card
-                            key={option.id}
-                            interactive
-                            selected={timeOfDay === option.id}
-                            onClick={() => handleTimeOfDayChange(option.id as ContextSetupData['timeOfDay'])}
-                            className="cursor-pointer"
-                            size="sm"
-                          >
-                            <CardContent>
-                              <div className="text-center">
-                                <div className="text-2xl mb-2">{option.icon}</div>
-                                <div className="text-sm font-medium text-foreground">
-                                  {option.label}
-                                </div>
-                                <div className="text-xs text-foreground-secondary">
-                                  {option.description}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                        <div>
+                          <Input
+                            label="Start Date"
+                            type="date"
+                            name="startDate"
+                            value={formData.startDate}
+                            onChange={(e) => handleFieldChange('startDate', e.target.value)}
+                            onBlur={() => handleFieldBlur('startDate')}
+                            error={errors.startDate}
+                            required
+                            min={new Date().toISOString().split('T')[0]}
+                            style={{ color: 'rgb(136 136 136)' }}
+                            className="placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                          />
+                        </div>
+                        <div>
+                          <Input
+                            label="End Date"
+                            type="date"
+                            name="endDate"
+                            value={formData.endDate}
+                            onChange={(e) => handleFieldChange('endDate', e.target.value)}
+                            onBlur={() => handleFieldBlur('endDate')}
+                            error={errors.endDate}
+                            required
+                            min={formData.startDate || new Date().toISOString().split('T')[0]}
+                            style={{ color: 'rgb(136 136 136)' }}
+                            className="placeholder:text-gray-500 dark:placeholder:text-gray-400"
+                          />
+                        </div>
                       </Grid>
+                      {formData.startDate && formData.endDate && (
+                        <div className="mt-3 p-3 bg-card-hover rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-foreground-secondary">
+                            <span>📅</span>
+                            <span>
+                              Trip duration: {
+                                Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1
+                              } day{
+                                Math.ceil((new Date(formData.endDate).getTime() - new Date(formData.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1 !== 1 ? 's' : ''
+                              }
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     <div>
-                      <DurationSlider
-                        label="Trip Duration"
-                        name="duration"
-                        value={formData.duration}
-                        onChange={handleFieldChange}
-                        onBlur={handleFieldBlur}
-                        min={1}
-                        max={12}
-                        step={0.5}
-                        error={errors.duration}
-                        required
-                      />
-                    </div>
-
-                    <div>
-                      <BudgetSlider
-                        label="Budget per Person"
+                      <Input
+                        label="Budget per Person (RM)*"
+                        type="number"
                         name="budget"
                         value={formData.budget}
-                        onChange={handleFieldChange}
-                        onBlur={handleFieldBlur}
-                        min={20}
-                        max={500}
-                        step={10}
+                        onChange={(e) => handleFieldChange('budget', parseFloat(e.target.value) || 0)}
+                        onBlur={() => handleFieldBlur('budget')}
                         error={errors.budget}
-                        required
+                        placeholder="Enter budget amount"
+                        min={1}
+                        step={1}
+                        style={{ color: 'rgb(136 136 136)' }}
+                        className="placeholder:text-gray-500 dark:placeholder:text-gray-400"
                       />
                     </div>
                   </Stack>

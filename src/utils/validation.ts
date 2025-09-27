@@ -134,13 +134,35 @@ export const validationSchemas = {
       commonRules.required('Number of adults is required'),
       commonRules.numberRange(1, 10, 'Adults must be between 1 and 10'),
     ],
-    duration: [
-      commonRules.required('Trip duration is required'),
-      commonRules.numberRange(1, 24, 'Duration must be between 1 and 24 hours'),
+    startDate: [
+      commonRules.required('Start date is required'),
+      {
+        custom: (value: string) => {
+          if (!value) return false;
+          const date = new Date(value);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return date >= today;
+        },
+        message: 'Start date cannot be in the past',
+      },
+    ],
+    endDate: [
+      commonRules.required('End date is required'),
+      {
+        custom: (value: string) => {
+          if (!value) return false;
+          const date = new Date(value);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          return date >= today;
+        },
+        message: 'End date cannot be in the past',
+      },
     ],
     budget: [
       commonRules.required('Budget is required'),
-      commonRules.numberRange(10, 1000, 'Budget must be between RM10 and RM1000'),
+      commonRules.numberRange(1, 10000, 'Budget must be between RM1 and RM10,000'),
     ],
   },
 
