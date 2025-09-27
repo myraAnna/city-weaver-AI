@@ -1,12 +1,26 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { ContextSetupForm, type ContextSetupData } from '@/components/features';
-import { useAppActions } from '@/contexts/app-context';
+import { useAppActions, useSelectedStyles } from '@/contexts/app-context';
 
 export default function ContextSetupPage() {
   const router = useRouter();
   const { setTravelContext } = useAppActions();
+  const selectedStyles = useSelectedStyles();
+
+  // Debug: Log component mount and selected styles
+  useEffect(() => {
+    console.log('🔄 Context Setup - Component mounted');
+    console.log('🎯 Context Setup - Selected styles on mount:', selectedStyles);
+    console.log('🎯 Context Setup - Number of styles:', selectedStyles.length);
+  }, []);
+
+  // Debug: Log when selectedStyles change
+  useEffect(() => {
+    console.log('📝 Context Setup - Selected styles changed:', selectedStyles);
+  }, [selectedStyles]);
 
   const handleFormSubmit = (data: ContextSetupData) => {
     console.log('📋 Context setup data received:', data);

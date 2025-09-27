@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect, useState } from 'react';
 import { TravelStyle, Stop, TravelGroup, Itinerary } from '@/types';
 
 // State interfaces

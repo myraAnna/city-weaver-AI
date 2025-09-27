@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Input, Slider } from '@/components/ui';
 import { FormField } from './form-field';
 import { ValidationRule, validateField } from '@/utils/validation';
-import { useDebouncedAutocomplete } from '@/hooks';
+import { useLocationSearch } from '@/hooks';
 
 export interface ValidatedInputProps {
   label?: string;
@@ -214,48 +214,48 @@ export interface LocationInputProps extends Omit<ValidatedInputProps, 'type'> {
 
 export const LocationInput = ({ onLocationSelect, onSearch, ...props }: LocationInputProps) => {
   const {
-    autocompleteResults,
-    isLoading,
+    suggestions,
+    isSearching,
     error,
-    setQuery,
-    clearAutocomplete,
-    getLocationForResult
-  } = useDebouncedAutocomplete(300);
+    searchLocations,
+    clearSuggestions
+  } = useLocationSearch(300);
 
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const handleSearch = (query: string) => {
     onSearch?.(query);
-    setQuery(query);
+    searchLocations(query);
 
     if (query.trim().length >= 2) {
       setShowSuggestions(true);
     } else {
       setShowSuggestions(false);
-      clearAutocomplete();
+      clearSuggestions();
     }
   };
 
-  const handleLocationSelect = (location: string) => {
-    console.log('🎯 LocationInput - User selected:', location);
+  const handleLocationSelect = (locationName: string) => {
+    console.log('🎯 LocationInput - User selected:', locationName);
     console.log('📝 LocationInput - Saving to form field:', props.name);
 
-    const locationData = getLocationForResult(location);
+    // Find the full location data from suggestions
+    const locationData = suggestions.find(suggestion => suggestion.name === locationName);
     console.log('📍 LocationInput - Found coordinates:', locationData?.coordinates);
 
-    props.onChange(props.name, location);
-    onLocationSelect?.(location, locationData?.coordinates);
+    props.onChange(props.name, locationName);
+    onLocationSelect?.(locationName, locationData?.coordinates);
     setShowSuggestions(false);
-    clearAutocomplete();
+    clearSuggestions();
   };
 
-  // autocompleteResults is already an array of strings (display_name from Nominatim)
-  const suggestions = autocompleteResults;
+  // Extract names for suggestions dropdown
+  const suggestionNames = suggestions.map(suggestion => suggestion.name);
 
   // Enhanced input with loading and error states
   const enhancedProps = {
     ...props,
-    rightIcon: isLoading ? (
+    rightIcon: isSearching ? (
       <div className="animate-spin rounded-full h-4 w-4 border-2 border-magic-teal border-t-transparent" />
     ) : (
       <span className="text-foreground-secondary">📍</span>
@@ -268,7 +268,7 @@ export const LocationInput = ({ onLocationSelect, onSearch, ...props }: Location
         {...enhancedProps}
         type="search"
         onSearch={handleSearch}
-        suggestions={showSuggestions ? suggestions : []}
+        suggestions={showSuggestions ? suggestionNames : []}
         placeholder={props.placeholder || "Enter city, district, or area..."}
         validationRules={props.validationRules || [
           { required: true, message: 'Location is required' },
@@ -288,25 +288,25 @@ export const LocationInput = ({ onLocationSelect, onSearch, ...props }: Location
       )}
 
       {/* Enhanced Suggestions with prediction data */}
-      {showSuggestions && autocompleteResults.length > 0 && (
+      {showSuggestions && suggestions.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           className="absolute top-full left-0 right-0 mt-4 bg-card-default border border-border-default rounded-lg shadow-xl z-[9999] max-h-80 overflow-y-auto w-full"
         >
-          {autocompleteResults.map((location, index) => (
+          {suggestions.map((suggestion, index) => (
             <button
               key={index}
               type="button"
-              onClick={() => handleLocationSelect(location)}
+              onClick={() => handleLocationSelect(suggestion.name)}
               className="w-full px-4 py-4 text-left hover:bg-card-hover transition-colors duration-200 first:rounded-t-lg last:rounded-b-lg border-b border-border-subtle last:border-b-0"
             >
               <div className="flex items-center gap-3">
                 <span className="text-foreground-secondary flex-shrink-0">📍</span>
                 <div className="flex-1 overflow-hidden">
                   <div className="text-sm font-medium text-foreground line-clamp-2">
-                    {location}
+                    {suggestion.name}
                   </div>
                 </div>
               </div>

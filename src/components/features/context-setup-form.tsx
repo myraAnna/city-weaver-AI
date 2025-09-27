@@ -44,6 +44,8 @@ const ContextSetupForm = ({
   onBack,
   className,
 }: ContextSetupFormProps) => {
+  console.log('🎨 ContextSetupForm - Component rendering');
+  
   // Memoize initial data to prevent recreation on every render
   const initialData = useMemo(() => {
     const today = new Date();
@@ -70,6 +72,9 @@ const ContextSetupForm = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [mobilityNeeds, setMobilityNeeds] = useState<string[]>([]);
   const [children, setChildren] = useState<{ age: number }[]>([]);
+
+  console.log('📊 ContextSetupForm - Current step:', currentStep);
+  console.log('📝 ContextSetupForm - Form data:', formData);
 
   const steps = [
     'Location',
@@ -291,19 +296,13 @@ const ContextSetupForm = ({
           </motion.div>
 
           {/* Form Steps */}
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.4 }}
-          >
+          <div>
             <Card size="lg">
               <CardHeader>
                 <CardTitle>{steps[currentStep]}</CardTitle>
               </CardHeader>
               <CardContent>
-                {currentStep === 0 && (
+                <div className={currentStep === 0 ? 'block' : 'hidden'}>
                   <Stack spacing="md">
                     <LocationInput
                       label="Where would you like to explore?"
@@ -321,9 +320,9 @@ const ContextSetupForm = ({
                       💡 Try searching for specific neighborhoods, landmarks, or areas you want to explore
                     </p>
                   </Stack>
-                )}
+                </div>
 
-                {currentStep === 1 && (
+                <div className={currentStep === 1 ? 'block' : 'hidden'}>
                   <Stack spacing="lg">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-3">
@@ -432,9 +431,9 @@ const ContextSetupForm = ({
                       )}
                     </div>
                   </Stack>
-                )}
+                </div>
 
-                {currentStep === 2 && (
+                <div className={currentStep === 2 ? 'block' : 'hidden'}>
                   <Stack spacing="lg">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-3">
@@ -508,9 +507,9 @@ const ContextSetupForm = ({
                       />
                     </div>
                   </Stack>
-                )}
+                </div>
 
-                {currentStep === 3 && (
+                <div className={currentStep === 3 ? 'block' : 'hidden'}>
                   <Stack spacing="lg">
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-3">
@@ -562,10 +561,10 @@ const ContextSetupForm = ({
                       )}
                     </div>
                   </Stack>
-                )}
+                </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
 
           {/* Action Buttons */}
           <motion.div
