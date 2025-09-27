@@ -170,6 +170,14 @@ export const usePlansAPI = (): UsePlansAPIReturn => {
         };
         setChatHistory(prev => [...prev, userMessage]);
 
+        // Also update currentPlan conversation_history
+        if (currentPlan) {
+          setCurrentPlan(prev => prev ? {
+            ...prev,
+            conversation_history: [...(prev.conversation_history || []), userMessage]
+          } : prev);
+        }
+
         // Handle response based on new format
         if (chatResponse.action === 'propose_draft_plan' && chatResponse.payload) {
           // Update current plan with new draft data
@@ -196,6 +204,11 @@ export const usePlansAPI = (): UsePlansAPIReturn => {
           };
           setChatHistory(prev => [...prev, aiMessage]);
         } else {
+          // Check if response contains Xibei Good message and set draft mode
+          if (chatResponse.response.includes("Xibei Good")) {
+            setIsDraftMode(true);
+          }
+          
           // Add AI text response to chat history
           const aiMessage = {
             role: 'assistant' as const,

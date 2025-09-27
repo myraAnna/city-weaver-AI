@@ -162,7 +162,7 @@ export const contextAlerts = [
   },
   {
     type: 'crowd' as const,
-    message: 'Petronas Twin Towers will be busy from 2-4 PM',
+    message: 'Kinta will be busy from 2-4 PM',
     priority: 'low' as const,
     icon: '👥',
   },
