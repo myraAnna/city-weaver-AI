@@ -183,8 +183,15 @@ export class PlansAPI {
       localStorage.setItem('chat-history', JSON.stringify(existingHistory));
       console.log('💬 Added conversation to localStorage:', newConversation);
       
+      // Count messages for this plan
+      const planMessages = existingHistory.filter((conv: any) => conv.planId === planId);
+      const messageCount = planMessages.length;
+      
+      // Return mockdata2.json on second message, mockdata.json on first
+      const responseData = messageCount >= 2 ? mockData2 : mockData;
+      
       return {
-        data: mockData as unknown as ChatResponse,
+        data: responseData as unknown as ChatResponse,
         status: 200,
         ok: true
       };
