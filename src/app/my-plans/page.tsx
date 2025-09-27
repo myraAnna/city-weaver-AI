@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import { MyPlansScreen } from '@/components/features/my-plans-screen';
-import { AuthGuard } from '@/contexts';
 
 export default function MyPlansPage() {
   const router = useRouter();
@@ -20,12 +19,10 @@ export default function MyPlansPage() {
   };
 
   return (
-    <AuthGuard requireAuth={true}>
-      <MyPlansScreen
-        onPlanSelected={handlePlanSelected}
-        onCreateNew={handleCreateNew}
-        onBack={handleBack}
-      />
-    </AuthGuard>
+    <MyPlansScreen
+      onPlanSelected={handlePlanSelected}
+      onCreateNew={handleCreateNew}
+      onBack={handleBack}
+    />
   );
 }
