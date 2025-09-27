@@ -287,29 +287,26 @@ export interface AppProviderProps {
 }
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-  const [state, dispatch] = useReducer(appReducer, initialState);
-
-  // Persist state to localStorage
-  useEffect(() => {
-    const savedState = localStorage.getItem('city-weaver-state');
-    if (savedState) {
-      try {
-        const parsedState = JSON.parse(savedState);
-        // Restore selected styles and context, but reset UI state
-        if (parsedState.selectedStyles) {
-          dispatch({ type: 'SET_SELECTED_STYLES', payload: parsedState.selectedStyles });
+  // Initialize state with localStorage data to prevent re-renders
+  const [state, dispatch] = useReducer(appReducer, initialState, (initial) => {
+    if (typeof window !== 'undefined') {
+      const savedState = localStorage.getItem('city-weaver-state');
+      if (savedState) {
+        try {
+          const parsedState = JSON.parse(savedState);
+          return {
+            ...initial,
+            selectedStyles: parsedState.selectedStyles || initial.selectedStyles,
+            travelContext: parsedState.travelContext || initial.travelContext,
+            currentItinerary: parsedState.currentItinerary || initial.currentItinerary,
+          };
+        } catch (error) {
+          console.warn('Failed to restore app state from localStorage:', error);
         }
-        if (parsedState.travelContext) {
-          dispatch({ type: 'SET_TRAVEL_CONTEXT', payload: parsedState.travelContext });
-        }
-        if (parsedState.currentItinerary) {
-          dispatch({ type: 'SET_CURRENT_ITINERARY', payload: parsedState.currentItinerary });
-        }
-      } catch (error) {
-        console.warn('Failed to restore app state from localStorage:', error);
       }
     }
-  }, []);
+    return initial;
+  });
 
   // Save state to localStorage on changes
   useEffect(() => {

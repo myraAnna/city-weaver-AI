@@ -180,9 +180,27 @@ export const useFormValidation = (
   initialData: Record<string, any>,
   schema: Record<string, ValidationRule[]>
 ) => {
-  const [data, setData] = React.useState(initialData);
+  // Use lazy initialization to prevent issues with Strict Mode
+  const [data, setData] = React.useState(() => initialData);
   const [errors, setErrors] = React.useState<ValidationErrors>({});
   const [touched, setTouched] = React.useState<Record<string, boolean>>({});
+
+  // Store initial data ref to detect changes
+  const initialDataRef = React.useRef(initialData);
+
+  // Reset form data when initialData changes (for component remounting in Strict Mode)
+  React.useEffect(() => {
+    const hasChanged = Object.keys(initialData).some(
+      key => initialData[key] !== initialDataRef.current[key]
+    ) || Object.keys(initialDataRef.current).length !== Object.keys(initialData).length;
+
+    if (hasChanged) {
+      setData(initialData);
+      setErrors({});
+      setTouched({});
+      initialDataRef.current = initialData;
+    }
+  }, [initialData]);
 
   const validateSingleField = (fieldName: string, value: any) => {
     if (schema[fieldName]) {

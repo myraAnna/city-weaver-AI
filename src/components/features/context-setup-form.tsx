@@ -4,7 +4,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { CenteredLayout, Stack, Container, Grid } from '@/components/layout';
-import { LocationInput, BudgetSlider, DurationSlider, ValidatedInput } from '@/components/forms';
+import { LocationInput, BudgetSlider, DurationSlider } from '@/components/forms';
 import { TravelGroup } from '@/types';
 import { useFormValidation, validationSchemas } from '@/utils/validation';
 
@@ -63,19 +63,12 @@ const ContextSetupForm = ({
     setFieldValue,
     setFieldTouched,
     validateAllFields,
-    isValid,
   } = useFormValidation(initialData, validationSchemas.contextSetup);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [timeOfDay, setTimeOfDay] = useState<ContextSetupData['timeOfDay']>('full-day');
   const [mobilityNeeds, setMobilityNeeds] = useState<string[]>([]);
   const [children, setChildren] = useState<{ age: number }[]>([]);
-  const [isClient, setIsClient] = useState(false);
-
-  // Ensure proper client-side initialization
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const steps = [
     'Location',
@@ -233,25 +226,6 @@ const ContextSetupForm = ({
     }
   };
 
-  const formatBudget = (value: number) => `RM${value}`;
-  const formatDuration = (value: number) => `${value}h`;
-
-  // Show loading state during hydration to prevent hydration mismatches
-  if (!isClient) {
-    return (
-      <CenteredLayout maxWidth="lg" className={className}>
-        <Container>
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="animate-spin w-8 h-8 border-2 border-magic-teal border-t-transparent rounded-full mx-auto mb-4"></div>
-              <p className="text-foreground-secondary">Loading form...</p>
-            </div>
-          </div>
-        </Container>
-      </CenteredLayout>
-    );
-  }
-
   return (
     <CenteredLayout maxWidth="lg" className={className}>
       <Container>
@@ -345,19 +319,41 @@ const ContextSetupForm = ({
                 {currentStep === 1 && (
                   <Stack spacing="lg">
                     <div>
-                      <ValidatedInput
-                        label="Number of Adults"
-                        name="group.adults"
-                        value={formData['group.adults']}
-                        onChange={handleFieldChange}
-                        onBlur={handleFieldBlur}
-                        type="slider"
-                        min={1}
-                        max={8}
-                        step={1}
-                        error={errors['group.adults']}
-                        required
-                      />
+                      <label className="block text-sm font-medium text-foreground mb-3">
+                        Number of Adults*
+                      </label>
+                      <div className="flex items-center justify-between p-4 bg-card-hover rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-foreground">Adults</span>
+                          <span className="text-xs text-foreground-secondary">18+ yrs</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleFieldChange('group.adults', Math.max(1, formData['group.adults'] - 1))}
+                            disabled={formData['group.adults'] <= 1}
+                            className="w-8 h-8 rounded-full p-0"
+                          >
+                            −
+                          </Button>
+                          <span className="min-w-[2rem] text-center text-foreground font-medium">
+                            {formData['group.adults']}
+                          </span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleFieldChange('group.adults', Math.min(8, formData['group.adults'] + 1))}
+                            disabled={formData['group.adults'] >= 8}
+                            className="w-8 h-8 rounded-full p-0"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+                      {errors['group.adults'] && (
+                        <p className="mt-1 text-sm text-red-400">{errors['group.adults']}</p>
+                      )}
                     </div>
 
                     <div>
@@ -384,28 +380,45 @@ const ContextSetupForm = ({
                           {children.map((child, index) => (
                             <div
                               key={index}
-                              className="flex items-center gap-2 p-3 bg-card-hover rounded-lg"
+                              className="p-3 bg-card-hover rounded-lg"
                             >
-                              <div className="flex-1">
-                                <ValidatedInput
-                                  label={`Child ${index + 1} Age`}
-                                  name={`child-${index}-age`}
-                                  value={child.age}
-                                  onChange={(_, age) => handleChildAgeChange(index, age as number)}
-                                  type="slider"
-                                  min={0}
-                                  max={17}
-                                  step={1}
-                                />
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-sm text-foreground">Child {index + 1}</span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeChild(index)}
+                                  className="text-red-400 hover:text-red-300 p-1"
+                                >
+                                  ✕
+                                </Button>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeChild(index)}
-                                className="text-red-400 hover:text-red-300 p-1"
-                              >
-                                ✕
-                              </Button>
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-foreground-secondary">Age</span>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleChildAgeChange(index, Math.max(0, child.age - 1))}
+                                    disabled={child.age <= 0}
+                                    className="w-6 h-6 rounded-full p-0 text-xs"
+                                  >
+                                    −
+                                  </Button>
+                                  <span className="min-w-[1.5rem] text-center text-sm text-foreground font-medium">
+                                    {child.age}
+                                  </span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleChildAgeChange(index, Math.min(17, child.age + 1))}
+                                    disabled={child.age >= 17}
+                                    className="w-6 h-6 rounded-full p-0 text-xs"
+                                  >
+                                    +
+                                  </Button>
+                                </div>
+                              </div>
                             </div>
                           ))}
                         </Grid>
