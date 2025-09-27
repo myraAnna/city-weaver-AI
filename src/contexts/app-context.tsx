@@ -9,6 +9,10 @@ export interface AppState {
   selectedStyles: TravelStyle[];
   travelContext: {
     location: string;
+    coordinates?: {
+      latitude: number;
+      longitude: number;
+    };
     group: TravelGroup;
     duration: number;
     timeOfDay: 'morning' | 'afternoon' | 'evening' | 'full-day';

@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import Script from "next/script"
 import { PageTransition } from "@/components/layout"
+import { ClientProviders } from "@/components/providers/client-providers"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -20,9 +21,11 @@ export default function RootLayout({
           src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js"
           strategy="beforeInteractive"
         />
-        <PageTransition className="min-h-screen">
-          {children}
-        </PageTransition>
+        <ClientProviders>
+          <PageTransition className="min-h-screen">
+            {children}
+          </PageTransition>
+        </ClientProviders>
       </body>
     </html>
   )

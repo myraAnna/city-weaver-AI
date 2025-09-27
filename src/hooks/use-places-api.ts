@@ -186,9 +186,18 @@ export const usePlacesAPI = (): UsePlacesAPIReturn => {
 };
 
 // Hook for debounced autocomplete
+export interface LocationResult {
+  display_name: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
 export const useDebouncedAutocomplete = (delay: number = 300) => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [autocompleteResults, setAutocompleteResults] = useState<string[]>([]);
+  const [locationResults, setLocationResults] = useState<LocationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -210,39 +219,31 @@ export const useDebouncedAutocomplete = (delay: number = 300) => {
               console.log('🏷️ Available properties:', Object.keys(data[0]));
             }
 
-            const results = data.map((result: any) => {
-              console.log('🔍 Processing result:', {
-                display_name: result.display_name,
-                name: result.name,
-                type: result.type,
-                class: result.class,
-                address: result.address
-              });
-              // Options for what to return:
-              // result.display_name = "Ipoh, Kinta, Perak, Malaysia" (full formatted)
-              // result.name = "Ipoh" (just the place name)
-              // result.address?.city || result.name = "Ipoh" (city name fallback)
+            const stringResults = data.map((result: any) => result.display_name);
+            const locationResults = data.map((result: any) => ({
+              display_name: result.display_name,
+              coordinates: {
+                latitude: parseFloat(result.lat),
+                longitude: parseFloat(result.lon)
+              }
+            }));
 
-              console.log('💡 Available options:');
-              console.log('   - display_name:', result.display_name);
-              console.log('   - name:', result.name);
-              console.log('   - address.city:', result.address?.city);
-
-              return result.display_name; // Current: full formatted address
-            });
-
-            console.log('✅ Final results sent to component:', results);
-            setAutocompleteResults(results);
+            console.log('✅ String results sent to component:', stringResults);
+            console.log('📍 Location results with coordinates:', locationResults);
+            setAutocompleteResults(stringResults);
+            setLocationResults(locationResults);
           })
           .catch(err => {
             setError('Failed to fetch suggestions');
             setAutocompleteResults([]);
+            setLocationResults([]);
           })
           .finally(() => {
             setIsLoading(false);
           });
       } else {
         setAutocompleteResults([]);
+        setLocationResults([]);
         setIsLoading(false);
       }
     }, delay);
@@ -258,15 +259,22 @@ export const useDebouncedAutocomplete = (delay: number = 300) => {
 
   const clearAutocomplete = () => {
     setAutocompleteResults([]);
+    setLocationResults([]);
     setError(null);
+  };
+
+  const getLocationForResult = (displayName: string): LocationResult | undefined => {
+    return locationResults.find(result => result.display_name === displayName);
   };
 
   return {
     autocompleteResults,
+    locationResults,
     isLoading,
     error,
     setQuery,
     clearAutocomplete,
+    getLocationForResult,
     query: debouncedQuery
   };
 };

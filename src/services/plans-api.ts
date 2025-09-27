@@ -26,7 +26,18 @@ export interface PlaceDetails {
   websiteUri?: string;
   regularOpeningHours?: {
     openNow: boolean;
-    periods?: any[];
+    periods?: {
+      open: {
+        day: number;
+        hour: number;
+        minute: number;
+      };
+      close: {
+        day: number;
+        hour: number;
+        minute: number;
+      };
+    }[];
     weekdayDescriptions?: string[];
     nextOpenTime?: string;
     nextCloseTime?: string;
@@ -48,11 +59,21 @@ export interface ConversationMessage {
   timestamp: string;
 }
 
+export interface MapData {
+  staticMapUrl: string;
+  navigationUrl: string;
+}
+
+export interface PlanPayload {
+  itinerary: ItineraryStop[];
+  map_data: MapData;
+}
+
 export interface Plan {
   plan_id: string;
   user_id: string;
   persona: PersonaGenerationResponse;
-  itinerary: ItineraryStop[];
+  payload: PlanPayload;
   conversation_history: ConversationMessage[];
   draft_itinerary?: {
     stops: ItineraryStop[];
@@ -61,6 +82,8 @@ export interface Plan {
   updated_at?: string;
   status?: 'draft' | 'confirmed';
   name?: string;
+  // Legacy support - keep itinerary for backward compatibility
+  itinerary?: ItineraryStop[];
 }
 
 export interface CreatePlanRequest {
@@ -90,8 +113,9 @@ export interface ChatRequest {
 }
 
 export interface ChatResponse {
-  type: 'plan' | 'message';
-  response: Plan | string;
+  action: 'message_user' | 'propose_draft_plan';
+  response: string;
+  payload: PlanPayload | null;
 }
 
 // Plans API Service
@@ -171,7 +195,7 @@ export class PlansAPI {
   generatePlanName(plan: Plan): string {
     if (plan.name) return plan.name;
 
-    const stops = plan.itinerary || [];
+    const stops = plan.payload?.itinerary || plan.itinerary || [];
     if (stops.length === 0) return 'New Plan';
 
     const firstStop = stops[0]?.place_details?.displayName?.text;
@@ -191,7 +215,7 @@ export class PlansAPI {
    * Extract location string from plan
    */
   extractLocationFromPlan(plan: Plan): string | null {
-    const stops = plan.itinerary || [];
+    const stops = plan.payload?.itinerary || plan.itinerary || [];
     if (stops.length === 0) return null;
 
     const firstStop = stops[0];
@@ -210,7 +234,7 @@ export class PlansAPI {
    * Calculate plan duration from itinerary
    */
   calculatePlanDuration(plan: Plan): string {
-    const stops = plan.itinerary || [];
+    const stops = plan.payload?.itinerary || plan.itinerary || [];
     if (stops.length === 0) return '0 hours';
 
     // Simple calculation based on number of stops
@@ -222,7 +246,7 @@ export class PlansAPI {
    * Get plan highlights (top 3 stops)
    */
   getPlanHighlights(plan: Plan): string[] {
-    const stops = plan.itinerary || [];
+    const stops = plan.payload?.itinerary || plan.itinerary || [];
     return stops
       .slice(0, 3)
       .map(stop => stop.place_details?.displayName?.text)
@@ -243,7 +267,7 @@ export class PlansAPI {
     if (this.hasDraftChanges(plan)) {
       return plan.draft_itinerary!.stops;
     }
-    return plan.itinerary || [];
+    return plan.payload?.itinerary || plan.itinerary || [];
   }
 
   /**
@@ -254,13 +278,15 @@ export class PlansAPI {
 
     if (!plan.plan_id) errors.push('Plan ID is required');
     if (!plan.persona) errors.push('Persona is required');
-    if (!plan.itinerary || plan.itinerary.length === 0) {
+
+    const itinerary = plan.payload?.itinerary || plan.itinerary || [];
+    if (itinerary.length === 0) {
       errors.push('At least one itinerary stop is required');
     }
 
     // Validate itinerary stops
-    if (plan.itinerary) {
-      plan.itinerary.forEach((stop, index) => {
+    if (itinerary.length > 0) {
+      itinerary.forEach((stop, index) => {
         if (!stop.place_details?.id) {
           errors.push(`Stop ${index + 1} is missing place details`);
         }

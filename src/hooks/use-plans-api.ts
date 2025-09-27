@@ -156,6 +156,12 @@ export const usePlansAPI = (): UsePlansAPIReturn => {
       if (response.ok && response.data) {
         const chatResponse = response.data;
 
+        // Log the complete chat response
+        console.log('🤖 Complete chat response:', JSON.stringify(chatResponse, null, 2));
+        console.log('🎯 Response action:', chatResponse.action);
+        console.log('💬 Response message:', chatResponse.response);
+        console.log('📦 Response payload:', chatResponse.payload);
+
         // Add user message to chat history
         const userMessage = {
           role: 'user' as const,
@@ -164,17 +170,28 @@ export const usePlansAPI = (): UsePlansAPIReturn => {
         };
         setChatHistory(prev => [...prev, userMessage]);
 
-        // Handle response
-        if (chatResponse.type === 'plan' && typeof chatResponse.response === 'object') {
-          // Update current plan with new data
-          const updatedPlan = chatResponse.response as Plan;
-          setCurrentPlan(updatedPlan);
-          setIsDraftMode(plansAPI.hasDraftChanges(updatedPlan));
+        // Handle response based on new format
+        if (chatResponse.action === 'propose_draft_plan' && chatResponse.payload) {
+          // Update current plan with new draft data
+          if (currentPlan) {
+            const updatedPlan: Plan = {
+              ...currentPlan,
+              draft_itinerary: {
+                stops: chatResponse.payload.itinerary
+              },
+              payload: {
+                ...currentPlan.payload,
+                map_data: chatResponse.payload.map_data
+              }
+            };
+            setCurrentPlan(updatedPlan);
+            setIsDraftMode(true);
+          }
 
           // Add AI response to chat history
           const aiMessage = {
             role: 'assistant' as const,
-            content: 'I\'ve updated your itinerary based on your request.',
+            content: chatResponse.response,
             timestamp: new Date().toISOString()
           };
           setChatHistory(prev => [...prev, aiMessage]);
@@ -182,7 +199,7 @@ export const usePlansAPI = (): UsePlansAPIReturn => {
           // Add AI text response to chat history
           const aiMessage = {
             role: 'assistant' as const,
-            content: chatResponse.response as string,
+            content: chatResponse.response,
             timestamp: new Date().toISOString()
           };
           setChatHistory(prev => [...prev, aiMessage]);

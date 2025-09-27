@@ -84,8 +84,21 @@ const ContextSetupForm = ({
     'Accessibility'
   ];
 
+  const [selectedLocationData, setSelectedLocationData] = useState<{
+    name: string;
+    coordinates?: { latitude: number; longitude: number };
+  }>({ name: '' });
+
   const handleLocationChange = (name: string, value: string | number) => {
     setFieldValue(name, value);
+    setSelectedLocationData(prev => ({ ...prev, name: value as string }));
+  };
+
+  const handleLocationSelect = (location: string, coordinates?: { latitude: number; longitude: number }) => {
+    setFieldValue('location', location);
+    setSelectedLocationData({ name: location, coordinates });
+    console.log('🎯 Context Form - Location selected:', location);
+    console.log('📍 Context Form - Coordinates:', coordinates);
   };
 
   const handleLocationBlur = (name: string) => {
@@ -184,7 +197,8 @@ const ContextSetupForm = ({
 
     if (isFormValid) {
       const finalData: ContextSetupData = {
-        location: formData.location,
+        location: selectedLocationData.name || formData.location,
+        coordinates: selectedLocationData.coordinates,
         group: {
           adults: formData['group.adults'],
           children,
@@ -196,7 +210,8 @@ const ContextSetupForm = ({
       };
 
       console.log('📋 ContextSetupForm - Final form data being submitted:');
-      console.log('🗺️ Location value:', formData.location);
+      console.log('🗺️ Location value:', finalData.location);
+      console.log('📍 Coordinates:', finalData.coordinates);
       console.log('📊 Complete final data:', finalData);
 
       onFormSubmit?.(finalData);
@@ -315,6 +330,7 @@ const ContextSetupForm = ({
                       name="location"
                       value={formData.location}
                       onChange={handleLocationChange}
+                      onLocationSelect={handleLocationSelect}
                       onBlur={handleLocationBlur}
                       error={errors.location}
                       required

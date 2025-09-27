@@ -208,7 +208,7 @@ const ValidatedInput = ({
 
 // Specialized components for common use cases
 export interface LocationInputProps extends Omit<ValidatedInputProps, 'type'> {
-  onLocationSelect?: (location: string) => void;
+  onLocationSelect?: (location: string, coordinates?: { latitude: number; longitude: number }) => void;
 }
 
 export const LocationInput = ({ onLocationSelect, onSearch, ...props }: LocationInputProps) => {
@@ -217,7 +217,8 @@ export const LocationInput = ({ onLocationSelect, onSearch, ...props }: Location
     isLoading,
     error,
     setQuery,
-    clearAutocomplete
+    clearAutocomplete,
+    getLocationForResult
   } = useDebouncedAutocomplete(300);
 
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -238,8 +239,11 @@ export const LocationInput = ({ onLocationSelect, onSearch, ...props }: Location
     console.log('🎯 LocationInput - User selected:', location);
     console.log('📝 LocationInput - Saving to form field:', props.name);
 
+    const locationData = getLocationForResult(location);
+    console.log('📍 LocationInput - Found coordinates:', locationData?.coordinates);
+
     props.onChange(props.name, location);
-    onLocationSelect?.(location);
+    onLocationSelect?.(location, locationData?.coordinates);
     setShowSuggestions(false);
     clearAutocomplete();
   };

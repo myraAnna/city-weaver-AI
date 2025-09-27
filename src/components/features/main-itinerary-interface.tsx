@@ -88,7 +88,7 @@ const MainItineraryInterface = ({
       // Get active itinerary (draft if available, otherwise main)
       const activeItinerary = isDraftMode && currentPlan.draft_itinerary
         ? currentPlan.draft_itinerary.stops
-        : currentPlan.itinerary;
+        : currentPlan.payload?.itinerary || currentPlan.itinerary;
 
       console.log('📋 activeItinerary:', activeItinerary);
       console.log('🔍 activeItinerary type:', typeof activeItinerary);
@@ -250,8 +250,8 @@ const MainItineraryInterface = ({
   const conversation: ChatConversation | undefined = chatHistory.length > 0 ? {
     id: `chat_${planId || 'default'}`,
     tripId: planId || 'default',
-    messages: chatHistory.map(msg => ({
-      id: `${msg.role}_${msg.timestamp}`,
+    messages: chatHistory.map((msg, index) => ({
+      id: `${msg.role}_${msg.timestamp}_${index}`,
       role: msg.role,
       content: msg.content,
       timestamp: new Date(msg.timestamp),

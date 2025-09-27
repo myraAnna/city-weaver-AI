@@ -120,11 +120,16 @@ const AIPlanningInterface = ({
           console.log('💡 Combined interests:', interests);
 
           // Get location name and coordinates from context data
-          const location_name = contextData?.location || "Kuala Lumpur, Malaysia";
+          const location_name = contextData?.location || "";
           const location = {
-            latitude: contextData?.coordinates?.latitude || 3.1390, // Default to KL coordinates
-            longitude: contextData?.coordinates?.longitude || 101.6869
+            latitude: contextData?.coordinates?.latitude || 0,
+            longitude: contextData?.coordinates?.longitude || 0
           };
+
+          // Validate that we have location data before proceeding
+          if (!location_name.trim()) {
+            throw new Error('Location is required. Please go back and select a location.');
+          }
           console.log('📍 Location name:', location_name);
           console.log('📍 Location coordinates:', location);
 
