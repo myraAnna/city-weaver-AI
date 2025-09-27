@@ -227,15 +227,6 @@ const ChatOverlay = ({
                   />
 
                   {/* Voice Input Button */}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleVoiceInput}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 p-0 rounded-full hover:bg-card-hover"
-                    title="Voice input"
-                  >
-                    🎤
-                  </Button>
                 </div>
 
                 <Button
