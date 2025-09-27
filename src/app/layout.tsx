@@ -7,6 +7,9 @@ import "./globals.css"
 export const metadata: Metadata = {
   title: "City Weaver AI",
   description: "An AI-powered city planning application",
+  icons: {
+    icon: "/favicon.ico",
+  },
 }
 
 export default function RootLayout({
