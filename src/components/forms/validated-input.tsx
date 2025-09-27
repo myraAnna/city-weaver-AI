@@ -207,7 +207,7 @@ const ValidatedInput = ({
 };
 
 // Specialized components for common use cases
-export interface LocationInputProps extends Omit<ValidatedInputProps, 'type' | 'validationRules'> {
+export interface LocationInputProps extends Omit<ValidatedInputProps, 'type'> {
   onLocationSelect?: (location: string) => void;
 }
 
@@ -235,14 +235,17 @@ export const LocationInput = ({ onLocationSelect, onSearch, ...props }: Location
   };
 
   const handleLocationSelect = (location: string) => {
+    console.log('🎯 LocationInput - User selected:', location);
+    console.log('📝 LocationInput - Saving to form field:', props.name);
+
     props.onChange(props.name, location);
     onLocationSelect?.(location);
     setShowSuggestions(false);
     clearAutocomplete();
   };
 
-  // Convert autocomplete predictions to suggestion strings
-  const suggestions = autocompleteResults.map(prediction => prediction.description);
+  // autocompleteResults is already an array of strings (display_name from Nominatim)
+  const suggestions = autocompleteResults;
 
   // Enhanced input with loading and error states
   const enhancedProps = {

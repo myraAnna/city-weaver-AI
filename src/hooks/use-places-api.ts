@@ -202,7 +202,36 @@ export const useDebouncedAutocomplete = (delay: number = 300) => {
         fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(debouncedQuery)}&limit=5&addressdetails=1`)
           .then(response => response.json())
           .then(data => {
-            const results = data.map((result: any) => result.display_name);
+            console.log('🗺️ Nominatim API Response for query:', debouncedQuery);
+            console.log('📍 Raw data:', data);
+
+            if (data && data.length > 0) {
+              console.log('📋 First result structure:', data[0]);
+              console.log('🏷️ Available properties:', Object.keys(data[0]));
+            }
+
+            const results = data.map((result: any) => {
+              console.log('🔍 Processing result:', {
+                display_name: result.display_name,
+                name: result.name,
+                type: result.type,
+                class: result.class,
+                address: result.address
+              });
+              // Options for what to return:
+              // result.display_name = "Ipoh, Kinta, Perak, Malaysia" (full formatted)
+              // result.name = "Ipoh" (just the place name)
+              // result.address?.city || result.name = "Ipoh" (city name fallback)
+
+              console.log('💡 Available options:');
+              console.log('   - display_name:', result.display_name);
+              console.log('   - name:', result.name);
+              console.log('   - address.city:', result.address?.city);
+
+              return result.display_name; // Current: full formatted address
+            });
+
+            console.log('✅ Final results sent to component:', results);
             setAutocompleteResults(results);
           })
           .catch(err => {

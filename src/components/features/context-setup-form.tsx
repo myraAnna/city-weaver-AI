@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { CenteredLayout, Stack, Container, Grid } from '@/components/layout';
 import { LocationInput, BudgetSlider, DurationSlider, ValidatedInput } from '@/components/forms';
 import { TravelGroup } from '@/types';
-import { useFormValidation, validationSchemas, ValidationErrors } from '@/utils/validation';
+import { useFormValidation, validationSchemas } from '@/utils/validation';
 
 export interface ContextSetupFormProps {
   onFormSubmit?: (data: ContextSetupData) => void;
@@ -49,12 +49,13 @@ const ContextSetupForm = ({
   onBack,
   className,
 }: ContextSetupFormProps) => {
-  const initialData = {
+  // Memoize initial data to prevent recreation on every render
+  const initialData = useMemo(() => ({
     location: '',
     'group.adults': 2,
     duration: 6,
     budget: 100,
-  };
+  }), []);
 
   const {
     data: formData,
@@ -69,6 +70,12 @@ const ContextSetupForm = ({
   const [timeOfDay, setTimeOfDay] = useState<ContextSetupData['timeOfDay']>('full-day');
   const [mobilityNeeds, setMobilityNeeds] = useState<string[]>([]);
   const [children, setChildren] = useState<{ age: number }[]>([]);
+  const [isClient, setIsClient] = useState(false);
+
+  // Ensure proper client-side initialization
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const steps = [
     'Location',
@@ -188,6 +195,10 @@ const ContextSetupForm = ({
         mobilityNeeds,
       };
 
+      console.log('📋 ContextSetupForm - Final form data being submitted:');
+      console.log('🗺️ Location value:', formData.location);
+      console.log('📊 Complete final data:', finalData);
+
       onFormSubmit?.(finalData);
     }
   };
@@ -210,8 +221,24 @@ const ContextSetupForm = ({
   const formatBudget = (value: number) => `RM${value}`;
   const formatDuration = (value: number) => `${value}h`;
 
+  // Show loading state during hydration to prevent hydration mismatches
+  if (!isClient) {
+    return (
+      <CenteredLayout maxWidth="lg" className={className}>
+        <Container>
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin w-8 h-8 border-2 border-magic-teal border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-foreground-secondary">Loading form...</p>
+            </div>
+          </div>
+        </Container>
+      </CenteredLayout>
+    );
+  }
+
   return (
-    <CenteredLayout maxWidth="lg" className={className} suppressHydrationWarning>
+    <CenteredLayout maxWidth="lg" className={className}>
       <Container>
         <Stack spacing="xl">
           {/* Header */}
