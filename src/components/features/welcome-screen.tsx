@@ -44,7 +44,7 @@ const WelcomeScreen = ({
             className="relative"
           >
             <div className="w-80 h-80 sm:w-96 sm:h-40 flex items-center justify-center">
-              <div className="text-6xl">🏙️</div>
+              <img src="/animation.gif" alt="City Animation" className="w-full h-full object-contain" />
             </div>
           </motion.div>
 
