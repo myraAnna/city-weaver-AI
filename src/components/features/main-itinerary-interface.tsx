@@ -183,7 +183,7 @@ const MainItineraryInterface = ({
   useEffect(() => {
     console.log('🚨 MainItineraryInterface error check:', {
       hasError: !!error,
-      error: error
+      error
     });
 
     if (error) {

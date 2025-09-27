@@ -247,10 +247,12 @@ export const useFormValidation = (
   };
 };
 
-export default {
+const ValidationUtils = {
   validateField,
   validateForm,
   commonRules,
   validationSchemas,
   useFormValidation,
 };
+
+export default ValidationUtils;

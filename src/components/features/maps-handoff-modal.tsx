@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { Itinerary, Stop } from '@/types';
 import { useRoutesAPI } from '@/hooks';
-import { Route, PlaceLocation } from '@/services/routes-api';
+import { Route } from '@/services/routes-api';
 
 export interface MapsHandoffModalProps {
   isOpen: boolean;
@@ -105,10 +105,19 @@ const MapsHandoffModal = ({
   const calculateRoute = async () => {
     if (stopsToRoute.length < 2) return;
 
-    const origin = stopsToRoute[0].coordinates;
-    const destination = stopsToRoute[stopsToRoute.length - 1].coordinates;
+    const origin = {
+      latitude: stopsToRoute[0].coordinates.lat,
+      longitude: stopsToRoute[0].coordinates.lng
+    };
+    const destination = {
+      latitude: stopsToRoute[stopsToRoute.length - 1].coordinates.lat,
+      longitude: stopsToRoute[stopsToRoute.length - 1].coordinates.lng
+    };
     const waypoints = stopsToRoute.slice(1, -1).map(stop => ({
-      location: stop.coordinates,
+      location: {
+        latitude: stop.coordinates.lat,
+        longitude: stop.coordinates.lng
+      },
       place_id: stop.id
     }));
 

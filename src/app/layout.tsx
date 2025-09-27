@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Script from "next/script"
 import { PageTransition } from "@/components/layout"
 import "./globals.css"
 
@@ -14,10 +15,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js" type="module"></script>
-      </head>
       <body className="antialiased">
+        <Script
+          src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.8.1/dist/dotlottie-wc.js"
+          strategy="beforeInteractive"
+        />
         <PageTransition className="min-h-screen">
           {children}
         </PageTransition>

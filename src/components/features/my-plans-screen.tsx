@@ -79,7 +79,7 @@ const MyPlansScreen = ({
   }
 
   return (
-    <CenteredLayout maxWidth="6xl" className={className}>
+    <CenteredLayout maxWidth="lg" className={className}>
       <Container>
         <Stack spacing="xl">
           {/* Header */}

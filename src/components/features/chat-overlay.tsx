@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { Stack } from '@/components/layout';
-import { ChatMessage, ChatConversation } from '@/types';
+import { ChatConversation } from '@/types';
 
 export interface ChatOverlayProps {
   isOpen: boolean;

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Input, SearchInput, Slider } from '@/components/ui';
+import { Input, Slider } from '@/components/ui';
 import { FormField } from './form-field';
 import { ValidationRule, validateField } from '@/utils/validation';
 import { useDebouncedAutocomplete } from '@/hooks';

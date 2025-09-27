@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button, DataLoading } from '@/components/ui';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, Button } from '@/components/ui';
 import { CenteredLayout, Stack, Container, Grid } from '@/components/layout';
-import { FormField, SuccessMessage } from '@/components/forms';
+import { FormField } from '@/components/forms';
 import { travelPersonas } from '@/data/travel-personas';
 import { TravelStyle } from '@/types';
 import { validateField, validationSchemas } from '@/utils/validation';

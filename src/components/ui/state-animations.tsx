@@ -443,9 +443,11 @@ export const StatusIndicator = ({ status, className, size = 'md' }: StatusIndica
   );
 };
 
-export default {
+const StateAnimations = {
   SuccessAnimation,
   ErrorAnimation,
   Toast,
   StatusIndicator
 };
+
+export default StateAnimations;

@@ -5,6 +5,14 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui';
 import { CenteredLayout, Stack, Container } from '@/components/layout';
 
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'dotlottie-wc': any;
+    }
+  }
+}
+
 export interface WelcomeScreenProps {
   onStartPlanning?: () => void;
   onHowItWorks?: () => void;

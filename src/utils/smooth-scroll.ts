@@ -238,7 +238,7 @@ export const createScrollReveal = (
   return observer;
 };
 
-export default {
+const SmoothScrollUtils = {
   scrollToElement,
   scrollToTop,
   scrollToBottom,
@@ -246,3 +246,5 @@ export default {
   enableSmoothScrolling,
   createScrollReveal,
 };
+
+export default SmoothScrollUtils;

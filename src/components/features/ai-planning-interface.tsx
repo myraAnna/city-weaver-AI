@@ -7,7 +7,6 @@ import { CenteredLayout, Stack, Container } from '@/components/layout';
 import { TravelStyle } from '@/types';
 import { ContextSetupData } from './context-setup-form';
 import { usePlansAPI } from '@/hooks';
-import { PersonaGenerationResponse } from '@/services/personas-api';
 
 export interface AIPlanningInterfaceProps {
   selectedStyles?: TravelStyle[];

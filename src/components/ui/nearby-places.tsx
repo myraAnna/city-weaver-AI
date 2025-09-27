@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui';
+import { Card, CardTitle, CardContent, Button, Badge } from '@/components/ui';
 import { Stack, Grid } from '@/components/layout';
 import { usePlacesAPI } from '@/hooks';
 import { Place, PlaceLocation } from '@/services/places-api';

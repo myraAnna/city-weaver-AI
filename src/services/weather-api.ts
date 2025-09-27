@@ -409,7 +409,7 @@ export class WeatherAPI {
     score: number; // 1-10
   } {
     let score = 5;
-    let reasons: string[] = [];
+    const reasons: string[] = [];
 
     // Temperature scoring
     if (weather.temperature >= 18 && weather.temperature <= 28) {
