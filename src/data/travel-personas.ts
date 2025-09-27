@@ -10,7 +10,7 @@ export const travelPersonas: TravelStyle[] = [
   },
   {
     id: 'foodies-quest',
-    name: "Foodie&apos;s Quest",
+    name: "Foodie's Quest",
     description: 'Savor authentic cuisine, food markets, and culinary experiences',
     icon: '🍜',
     examples: ['Food tours', 'Local eateries', 'Cooking classes', 'Night markets']

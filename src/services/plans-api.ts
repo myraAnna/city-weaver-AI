@@ -13,16 +13,26 @@ export interface PlanLocation {
 }
 
 export interface PlaceDetails {
-  place_id: string;
-  display_name: string;
-  formatted_address: string;
+  id: string;
+  displayName: {
+    text: string;
+    languageCode: string;
+  };
+  formattedAddress: string;
   location: PlanLocation;
   rating?: number;
-  user_rating_count?: number;
-  price_level?: string;
-  website_uri?: string;
-  regular_opening_hours?: any;
+  userRatingCount?: number;
+  priceLevel?: string;
+  websiteUri?: string;
+  regularOpeningHours?: {
+    openNow: boolean;
+    periods?: any[];
+    weekdayDescriptions?: string[];
+    nextOpenTime?: string;
+    nextCloseTime?: string;
+  };
   types: string[];
+  goodForChildren?: boolean;
 }
 
 export interface ItineraryStop {
@@ -54,8 +64,12 @@ export interface Plan {
 }
 
 export interface CreatePlanRequest {
-  persona: PersonaGenerationResponse;
-  location: PlanLocation;
+  interests: string[];
+  location_name: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 export interface PlanSummary {
@@ -86,7 +100,27 @@ export class PlansAPI {
    * Create a new travel plan
    */
   async createPlan(data: CreatePlanRequest): Promise<APIResponse<Plan>> {
-    return apiClient.post<Plan>('/api/plans', data);
+    console.log('🌐 PlansAPI.createPlan called with:', data);
+    console.log('🔍 DETAILED REQUEST DATA:');
+    console.log('  📝 Interests:', JSON.stringify(data.interests, null, 2));
+    console.log('  🏷️ Location Name:', data.location_name);
+    console.log('  📍 Location Coordinates:', JSON.stringify(data.location, null, 2));
+    console.log('  🔢 Data types:', {
+      location_name: typeof data.location_name,
+      latitude: typeof data.location.latitude,
+      longitude: typeof data.location.longitude
+    });
+    console.log('🔗 Making API call to /api/plans...');
+    console.log('📦 Full request payload:', JSON.stringify(data, null, 2));
+
+    try {
+      const response = await apiClient.post<Plan>('/api/plans', data);
+      console.log('🌐 PlansAPI.createPlan response:', response);
+      return response;
+    } catch (error) {
+      console.error('💥 PlansAPI.createPlan error:', error);
+      throw error;
+    }
   }
 
   /**
@@ -140,8 +174,8 @@ export class PlansAPI {
     const stops = plan.itinerary || [];
     if (stops.length === 0) return 'New Plan';
 
-    const firstStop = stops[0]?.place_details?.display_name;
-    const lastStop = stops[stops.length - 1]?.place_details?.display_name;
+    const firstStop = stops[0]?.place_details?.displayName?.text;
+    const lastStop = stops[stops.length - 1]?.place_details?.displayName?.text;
 
     if (firstStop && lastStop && firstStop !== lastStop) {
       return `${firstStop} to ${lastStop}`;
@@ -161,7 +195,7 @@ export class PlansAPI {
     if (stops.length === 0) return null;
 
     const firstStop = stops[0];
-    const address = firstStop.place_details?.formatted_address;
+    const address = firstStop.place_details?.formattedAddress;
 
     if (address) {
       // Extract city from address (simplified)
@@ -191,7 +225,7 @@ export class PlansAPI {
     const stops = plan.itinerary || [];
     return stops
       .slice(0, 3)
-      .map(stop => stop.place_details?.display_name)
+      .map(stop => stop.place_details?.displayName?.text)
       .filter(Boolean) as string[];
   }
 
@@ -227,7 +261,7 @@ export class PlansAPI {
     // Validate itinerary stops
     if (plan.itinerary) {
       plan.itinerary.forEach((stop, index) => {
-        if (!stop.place_details?.place_id) {
+        if (!stop.place_details?.id) {
           errors.push(`Stop ${index + 1} is missing place details`);
         }
         if (!stop.time) {
@@ -247,8 +281,8 @@ export class PlansAPI {
 export const plansAPI = new PlansAPI();
 
 // Export utility functions
-export const createNewPlan = (persona: PersonaGenerationResponse, location: PlanLocation, context?: any) =>
-  plansAPI.createPlan({ persona, location, context });
+export const createNewPlan = (interests: string[], location_name: string, location: { latitude: number; longitude: number }) =>
+  plansAPI.createPlan({ interests, location_name, location });
 
 export const getAllPlans = () => plansAPI.getPlans();
 

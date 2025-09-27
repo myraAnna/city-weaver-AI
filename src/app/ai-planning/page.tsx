@@ -28,7 +28,7 @@ export default function AIPlanningPage() {
 
   const handlePlanningComplete = (planData: { styles: any; context: any; planId: string }) => {
     console.log('Planning completed with data:', planData);
-    router.push('/itinerary');
+    router.push(`/itinerary?planId=${planData.planId}`);
   };
 
   return (

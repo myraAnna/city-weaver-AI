@@ -7,8 +7,16 @@ interface NominatimResult {
   lon: string;
 }
 
+export interface LocationSuggestion {
+  name: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
 export interface UseLocationSearchReturn {
-  suggestions: string[];
+  suggestions: LocationSuggestion[];
   isSearching: boolean;
   error: string | null;
   searchLocations: (query: string) => void;
@@ -18,7 +26,7 @@ export interface UseLocationSearchReturn {
 export const useLocationSearch = (
   debounceMs: number = 300
 ): UseLocationSearchReturn => {
-  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -50,10 +58,16 @@ export const useLocationSearch = (
           throw new Error('Failed to fetch locations');
         }
 
-        const data = await response.json();
-        const locationNames = data.map((result: any) => result.display_name);
-        
-        setSuggestions(locationNames);
+        const data: NominatimResult[] = await response.json();
+        const locationSuggestions: LocationSuggestion[] = data.map((result) => ({
+          name: result.display_name,
+          coordinates: {
+            latitude: parseFloat(result.lat),
+            longitude: parseFloat(result.lon)
+          }
+        }));
+
+        setSuggestions(locationSuggestions);
       } catch (error) {
         console.error('Location search failed:', error);
         setError(error instanceof Error ? error.message : 'Search failed');

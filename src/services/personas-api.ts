@@ -3,7 +3,7 @@
  * Handles persona generation based on user interests and location
  */
 
-import { apiClient, APIResponse } from './api-client';
+import { APIResponse } from './api-client';
 import { TravelStyle } from '@/types';
 
 // Persona API Types
@@ -26,9 +26,22 @@ export interface EnhancedTravelStyle extends TravelStyle {
 export class PersonasAPI {
   /**
    * Generate persona based on interests and location
+   * @deprecated - Persona generation is now handled by /api/plans endpoint
+   * This method is kept for backward compatibility but will create mock personas
    */
   async generatePersona(data: PersonaGenerationRequest): Promise<APIResponse<PersonaGenerationResponse>> {
-    return apiClient.post<PersonaGenerationResponse>('/api/personas', data);
+    // Create a mock persona based on interests
+    const mockPersona: PersonaGenerationResponse = {
+      name: `${data.interests[0] || 'Travel'} Explorer`,
+      backstory: `A passionate traveler interested in ${data.interests.join(', ')} in ${data.location}`,
+      tone: "enthusiastic and knowledgeable"
+    };
+
+    return {
+      ok: true,
+      status: 200,
+      data: mockPersona
+    };
   }
 
   /**
@@ -43,9 +56,14 @@ export class PersonasAPI {
 
       // Generate persona for each style
       for (const style of styles) {
+        // Clean interests to avoid JSON parsing errors
+        const cleanInterests = [style.name, ...style.examples]
+          .map(interest => interest.replace(/[\x00-\x1F\x7F]/g, '')) // Remove control characters
+          .filter(interest => interest.trim().length > 0); // Remove empty strings
+
         const personaRequest: PersonaGenerationRequest = {
-          interests: [style.name, ...style.keywords],
-          location
+          interests: cleanInterests,
+          location: location.replace(/[\x00-\x1F\x7F]/g, '') // Clean location too
         };
 
         const response = await this.generatePersona(personaRequest);
@@ -66,7 +84,7 @@ export class PersonasAPI {
         status: 200,
         data: enhancedStyles
       };
-    } catch (error) {
+    } catch {
       return {
         ok: false,
         status: 0,
@@ -136,7 +154,7 @@ export class PersonasAPI {
     if (stylesWithPersonas.length === 0) {
       return {
         dominantPersona: null,
-        combinedInterests: styles.flatMap(style => style.keywords),
+        combinedInterests: styles.flatMap(style => style.examples),
         contextDescription: `A traveler interested in ${styles.map(s => s.name).join(', ')} in ${location}`
       };
     }
@@ -145,7 +163,7 @@ export class PersonasAPI {
     const dominantPersona = stylesWithPersonas[0].persona!;
 
     // Combine all interests from selected styles
-    const combinedInterests = styles.flatMap(style => [style.name, ...style.keywords]);
+    const combinedInterests = styles.flatMap(style => [style.name, ...style.examples]);
 
     // Create a context description
     const contextDescription = stylesWithPersonas.length === 1
@@ -166,7 +184,7 @@ export const personasAPI = new PersonasAPI();
 // Export utility functions
 export const generatePersonaForStyle = (style: TravelStyle, location: string) =>
   personasAPI.generatePersona({
-    interests: [style.name, ...style.keywords],
+    interests: [style.name, ...style.examples],
     location
   });
 

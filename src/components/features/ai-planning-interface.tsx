@@ -76,6 +76,7 @@ const AIPlanningInterface = ({
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [isComplete, setIsComplete] = useState(false);
   const [planCreated, setPlanCreated] = useState(false);
+  const [isWaitingForAPI, setIsWaitingForAPI] = useState(false);
 
   // Plans API hook
   const {
@@ -86,41 +87,88 @@ const AIPlanningInterface = ({
   } = usePlansAPI();
 
   useEffect(() => {
+    console.log('🔄 useEffect triggered:', {
+      currentStepIndex,
+      totalSteps: planningSteps.length,
+      planCreated,
+      isComplete
+    });
+
     if (currentStepIndex >= planningSteps.length && !planCreated) {
+      console.log('✨ All steps completed, starting plan creation...');
       setIsComplete(true);
       setPlanCreated(true);
+      setIsWaitingForAPI(true);
 
       // Create actual plan using API
       const createActualPlan = async () => {
         try {
           console.log('🚀 Starting plan creation...');
+          console.log('📊 Input data:', {
+            selectedStyles,
+            enhancedStyles,
+            contextData
+          });
           
-          // Get the dominant persona from enhanced styles
-          const stylesWithPersonas = enhancedStyles || selectedStyles || [];
-          const dominantStyle = stylesWithPersonas[0];
-          const persona = dominantStyle?.persona || {
-            name: "City Explorer",
-            backstory: "A curious traveler eager to discover new places",
-            tone: "enthusiastic and friendly"
-          };
+          // Extract interests from selected styles
+          const styles = enhancedStyles || selectedStyles || [];
+          console.log('🎭 Selected styles:', styles);
 
-          // Create location from context data
+          // Combine interests from all selected styles
+          const interests = styles.flatMap(style => [style.name, ...style.examples])
+            .map(interest => interest.replace(/[\x00-\x1F\x7F]/g, '')) // Clean control characters
+            .filter(interest => interest.trim().length > 0); // Remove empty strings
+          console.log('💡 Combined interests:', interests);
+
+          // Get location name and coordinates from context data
+          const location_name = contextData?.location || "Kuala Lumpur, Malaysia";
           const location = {
-            latitude: 3.1390, // Default to KL if no specific location
-            longitude: 101.6869
+            latitude: contextData?.coordinates?.latitude || 3.1390, // Default to KL coordinates
+            longitude: contextData?.coordinates?.longitude || 101.6869
           };
+          console.log('📍 Location name:', location_name);
+          console.log('📍 Location coordinates:', location);
 
-          console.log('📝 Calling createPlan with:', { persona, location });
-
-          const newPlan = await createPlan({
-            persona,
-            location
+          console.log('🔍 VERIFICATION BEFORE API CALL:');
+          console.log('  📊 contextData:', contextData);
+          console.log('  📝 interests array:', interests);
+          console.log('  🏷️ location_name:', location_name);
+          console.log('  📍 location coordinates:', location);
+          console.log('  🔄 data structure check:', {
+            interestsLength: interests.length,
+            locationNameType: typeof location_name,
+            locationNameValue: location_name,
+            latitudeType: typeof location.latitude,
+            latitudeValue: location.latitude,
+            longitudeType: typeof location.longitude,
+            longitudeValue: location.longitude
           });
 
+          const requestPayload = {
+            interests,
+            location_name,
+            location
+          };
+          console.log('🎯 FINAL REQUEST PAYLOAD:', JSON.stringify(requestPayload, null, 2));
+
+          const newPlan = await createPlan(requestPayload);
+
           console.log('✅ Plan creation result:', newPlan);
+          console.log('🔍 Plan type:', typeof newPlan);
+          console.log('🔍 Plan keys:', newPlan ? Object.keys(newPlan) : 'null');
 
           if (newPlan) {
-            console.log('🎉 Plan created successfully, redirecting in 2 seconds...');
+            console.log('🎉 Plan created successfully, redirecting immediately...');
+            setIsWaitingForAPI(false);
+            console.log('📦 Preparing callback data:', {
+              styles: selectedStyles,
+              enhancedStyles,
+              context: contextData,
+              plan: newPlan,
+              planId: newPlan.plan_id,
+            });
+
+            // Small delay to show completion message before redirect
             setTimeout(() => {
               onPlanningComplete?.({
                 styles: selectedStyles,
@@ -129,31 +177,22 @@ const AIPlanningInterface = ({
                 plan: newPlan,
                 planId: newPlan.plan_id,
               });
-            }, 2000);
+            }, 1500);
           } else {
-            console.log('⚠️ API failed, using mock plan to continue flow...');
-            // Fallback: Create mock plan to continue user flow
-            const mockPlan = {
-              plan_id: `mock-${Date.now()}`,
-              user_id: 'demo-user',
-              persona,
-              itinerary: [],
-              conversation_history: []
-            };
-            
-            setTimeout(() => {
-              onPlanningComplete?.({
-                styles: selectedStyles,
-                enhancedStyles,
-                context: contextData,
-                plan: mockPlan,
-                planId: mockPlan.plan_id,
-              });
-            }, 2000);
+            console.log('⚠️ API returned null, staying in waiting state...');
+            setIsWaitingForAPI(false);
+            onError?.('Failed to create your plan. Please try again.');
           }
         } catch (error) {
           console.error('💥 Plan creation error:', error);
-          onError?.('Something went wrong while creating your plan.');
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          console.error('💥 Error details:', {
+            message: errorMessage,
+            stack: error instanceof Error ? error.stack : undefined,
+            name: error instanceof Error ? error.name : undefined
+          });
+          setIsWaitingForAPI(false);
+          onError?.('The API is taking longer than expected. Please try again or check your connection.');
         }
       };
 
@@ -163,7 +202,10 @@ const AIPlanningInterface = ({
 
     if (currentStepIndex < planningSteps.length) {
       const currentStep = planningSteps[currentStepIndex];
+      console.log(`⏳ Starting step ${currentStepIndex + 1}/${planningSteps.length}: ${currentStep.label}`);
+      
       const timer = setTimeout(() => {
+        console.log(`✅ Completed step: ${currentStep.label}`);
         setCompletedSteps(prev => [...prev, currentStep.id]);
         setCurrentStepIndex(prev => prev + 1);
       }, currentStep.duration * 1000);
@@ -203,7 +245,19 @@ const AIPlanningInterface = ({
               <Stack spacing="lg" align="center">
                 {/* Title */}
                 <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-                  {isComplete ? (
+                  {isWaitingForAPI ? (
+                    <>
+                      <motion.span
+                        animate={{ opacity: [1, 0.5, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        Generating your{' '}
+                        <span className="bg-gradient-to-r from-magic-teal to-magic-purple bg-clip-text text-transparent">
+                          perfect itinerary
+                        </span>
+                      </motion.span>
+                    </>
+                  ) : isComplete ? (
                     <>
                       Your{' '}
                       <span className="bg-gradient-to-r from-magic-teal to-magic-purple bg-clip-text text-transparent">
@@ -237,7 +291,7 @@ const AIPlanningInterface = ({
                   )}
                 </AnimatePresence>
 
-                {isComplete && (
+                {isComplete && !isWaitingForAPI && (
                   <motion.p
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -245,6 +299,22 @@ const AIPlanningInterface = ({
                     className="text-lg text-foreground-secondary"
                   >
                     Get ready to explore like never before
+                  </motion.p>
+                )}
+
+                {isWaitingForAPI && (
+                  <motion.p
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                    className="text-lg text-foreground-secondary"
+                  >
+                    <motion.span
+                      animate={{ opacity: [1, 0.6, 1] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                    >
+                      This may take up to 2-3 minutes as we discover amazing places for you...
+                    </motion.span>
                   </motion.p>
                 )}
               </Stack>
@@ -263,7 +333,8 @@ const AIPlanningInterface = ({
                     steps={planningSteps}
                     currentStepIndex={currentStepIndex}
                     completedSteps={completedSteps}
-                    isComplete={isComplete}
+                    isComplete={isComplete && !isWaitingForAPI}
+                    isWaitingForAPI={isWaitingForAPI}
                   />
                 </CardContent>
               </Card>
@@ -385,9 +456,10 @@ interface PlanningStepsProps {
   currentStepIndex: number;
   completedSteps: string[];
   isComplete: boolean;
+  isWaitingForAPI?: boolean;
 }
 
-const PlanningSteps = ({ steps, currentStepIndex, completedSteps, isComplete }: PlanningStepsProps) => {
+const PlanningSteps = ({ steps, currentStepIndex, completedSteps, isComplete, isWaitingForAPI }: PlanningStepsProps) => {
   return (
     <div className="space-y-4">
       {steps.map((step, index) => {
@@ -465,7 +537,7 @@ const PlanningSteps = ({ steps, currentStepIndex, completedSteps, isComplete }: 
       })}
 
       {/* Completion Message */}
-      {isComplete && (
+      {isComplete && !isWaitingForAPI && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -477,6 +549,33 @@ const PlanningSteps = ({ steps, currentStepIndex, completedSteps, isComplete }: 
           </div>
           <p className="text-sm text-foreground-secondary">
             Your personalized itinerary is ready to explore
+          </p>
+        </motion.div>
+      )}
+
+      {/* Waiting for API Message */}
+      {isWaitingForAPI && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+          className="text-center pt-4 border-t border-border-subtle"
+        >
+          <div className="text-lg font-medium text-magic-teal mb-2">
+            <motion.span
+              animate={{ opacity: [1, 0.5, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              ⏳ Connecting to AI Travel Assistant...
+            </motion.span>
+          </div>
+          <p className="text-sm text-foreground-secondary">
+            <motion.span
+              animate={{ opacity: [1, 0.7, 1] }}
+              transition={{ duration: 1.8, repeat: Infinity, delay: 0.3 }}
+            >
+              This process typically takes 2-3 minutes as we research the best places for you
+            </motion.span>
           </p>
         </motion.div>
       )}

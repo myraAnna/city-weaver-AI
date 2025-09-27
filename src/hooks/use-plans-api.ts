@@ -51,14 +51,19 @@ export const usePlansAPI = (): UsePlansAPIReturn => {
   }, []);
 
   const createPlan = useCallback(async (data: CreatePlanRequest): Promise<Plan | null> => {
+    console.log('🎯 usePlansAPI.createPlan called with:', data);
     setIsLoading(true);
     setError(null);
 
     try {
+      console.log('📡 Calling plansAPI.createPlan...');
       const response = await plansAPI.createPlan(data);
+      console.log('📡 plansAPI.createPlan response:', response);
 
       if (response.ok && response.data) {
         const newPlan = response.data;
+        console.log('✅ Plan created successfully:', newPlan);
+        
         setCurrentPlan(newPlan);
         setChatHistory(newPlan.conversation_history || []);
 
@@ -69,18 +74,22 @@ export const usePlansAPI = (): UsePlansAPIReturn => {
           created_at: newPlan.created_at || new Date().toISOString(),
           status: newPlan.status || 'draft'
         };
+        console.log('📝 Adding plan summary to list:', planSummary);
         setPlans(prev => [planSummary, ...prev]);
 
         return newPlan;
       } else {
+        console.error('❌ Plan creation failed:', response.error);
         setError(response.error || 'Failed to create plan');
         return null;
       }
     } catch (err) {
+      console.error('💥 Exception in createPlan:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to create plan';
       setError(errorMessage);
       return null;
     } finally {
+      console.log('🏁 createPlan finished, setting loading to false');
       setIsLoading(false);
     }
   }, []);

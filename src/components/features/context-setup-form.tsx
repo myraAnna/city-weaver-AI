@@ -16,6 +16,10 @@ export interface ContextSetupFormProps {
 
 export interface ContextSetupData {
   location: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
   group: TravelGroup;
   duration: number; // in hours
   timeOfDay: 'morning' | 'afternoon' | 'evening' | 'full-day';
@@ -207,7 +211,7 @@ const ContextSetupForm = ({
   const formatDuration = (value: number) => `${value}h`;
 
   return (
-    <CenteredLayout maxWidth="lg" className={className}>
+    <CenteredLayout maxWidth="lg" className={className} suppressHydrationWarning>
       <Container>
         <Stack spacing="xl">
           {/* Header */}

@@ -4,8 +4,8 @@
  */
 
 // API Configuration
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://06c1e20e5e45.ngrok-free.app';
-const API_TIMEOUT = 30000; // 30 seconds
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://fdebe4e2cb1e.ngrok-free.app';
+const API_TIMEOUT = 180000; // 3 minutes for AI planning operations
 
 // Types for API responses
 export interface APIResponse<T = any> {
@@ -114,54 +114,80 @@ export class APIClient {
 
     // Build URL
     const url = `${this.baseURL}${endpoint}`;
+    console.log(`🌐 APIClient.makeRequest: ${method} ${url}`);
+    console.log('📦 Request body (raw):', body);
+    console.log('📦 Request body (JSON):', JSON.stringify(body, null, 2));
+    console.log('📦 Request body type:', typeof body);
 
     // Prepare headers
     const requestHeaders: Record<string, string> = {
       'Content-Type': 'application/json',
+      'ngrok-skip-browser-warning': 'true',
       ...headers
     };
 
-    // Add authentication header if token exists
-    const token = this.tokenManager.getToken();
-    if (token) {
-      requestHeaders['Authorization'] = `Bearer ${token}`;
-    }
+    // Skip authentication for now
+    // const token = this.tokenManager.getToken();
+    // if (token) {
+    //   requestHeaders['Authorization'] = `Bearer ${token}`;
+    //   console.log('🔐 Added auth token to request');
+    // } else {
+    //   console.log('⚠️ No auth token available');
+    // }
+    console.log('🔓 Skipping auth for all endpoints');
+
+    console.log('📋 Request headers:', requestHeaders);
 
     // Prepare request config
+    const jsonBody = body ? JSON.stringify(body) : undefined;
+    console.log('🔥 FINAL JSON BODY BEING SENT:', jsonBody);
+
     const requestConfig: RequestInit = {
       method,
       headers: requestHeaders,
-      body: body ? JSON.stringify(body) : undefined,
+      body: jsonBody,
     };
 
     let lastError: APIClientError | null = null;
 
     // Retry logic
     for (let attempt = 1; attempt <= (retry ? retryAttempts : 1); attempt++) {
+      console.log(`🔄 Attempt ${attempt}/${retry ? retryAttempts : 1}`);
+      
       try {
         // Create abort controller for timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+        console.log('📡 Making fetch request...');
         const response = await fetch(url, {
           ...requestConfig,
           signal: controller.signal
         });
 
         clearTimeout(timeoutId);
+        console.log('📡 Fetch response received:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        });
 
         // Parse response
         let responseData: any;
         const contentType = response.headers.get('content-type');
+        console.log('📄 Response content-type:', contentType);
 
         if (contentType && contentType.includes('application/json')) {
           responseData = await response.json();
+          console.log('📄 Parsed JSON response:', responseData);
         } else {
           responseData = await response.text();
+          console.log('📄 Text response:', responseData);
         }
 
         // Handle successful response
         if (response.ok) {
+          console.log('✅ Request successful');
           return {
             data: responseData,
             status: response.status,
@@ -172,6 +198,12 @@ export class APIClient {
         // Handle HTTP errors
         const errorMessage = responseData?.error || responseData?.message || `HTTP ${response.status}`;
         const errorCode = responseData?.code;
+        console.error('❌ HTTP error:', {
+          status: response.status,
+          message: errorMessage,
+          code: errorCode,
+          data: responseData
+        });
 
         lastError = new APIClientError(
           errorMessage,
@@ -182,20 +214,26 @@ export class APIClient {
 
         // Don't retry on client errors (4xx) except for 401 (unauthorized)
         if (response.status >= 400 && response.status < 500 && response.status !== 401) {
+          console.log('🚫 Client error, not retrying');
           break;
         }
 
         // Handle 401 - clear token and don't retry
         if (response.status === 401) {
+          console.log('🔐 Unauthorized, clearing token');
           this.tokenManager.clearToken();
           break;
         }
 
       } catch (error) {
+        console.error('💥 Request exception:', error);
+        
         if (error instanceof Error) {
           if (error.name === 'AbortError') {
+            console.error('⏰ Request timeout');
             lastError = new APIClientError('Request timeout', 408);
           } else {
+            console.error('🌐 Network error:', error.message);
             lastError = new APIClientError(
               error.message || 'Network error',
               0
@@ -206,11 +244,14 @@ export class APIClient {
 
       // Wait before retry (except on last attempt)
       if (attempt < retryAttempts && retry) {
-        await new Promise(resolve => setTimeout(resolve, retryDelay * attempt));
+        const delay = retryDelay * attempt;
+        console.log(`⏳ Waiting ${delay}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
 
     // Return error response
+    console.error('💀 All attempts failed, returning error');
     return {
       error: lastError?.message || 'Unknown error',
       status: lastError?.status || 0,
