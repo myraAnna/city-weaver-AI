@@ -12,13 +12,6 @@ export default function AIPlanningPage() {
   const selectedStyles = useSelectedStyles();
   const { resetApp } = useAppActions();
 
-  // Debug: Add reset button for development
-  const handleReset = () => {
-    if (confirm('This will clear all saved data and redirect to context setup. Continue?')) {
-      resetApp();
-      router.push('/context-setup');
-    }
-  };
 
   // Debug logging
   console.log('🔍 AI Planning Page - travelContext from hook:', travelContext);
@@ -66,23 +59,6 @@ export default function AIPlanningPage() {
 
   return (
     <div>
-      {/* Debug: Reset button for development */}
-      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999 }}>
-        <button
-          onClick={handleReset}
-          style={{
-            padding: '8px 12px',
-            backgroundColor: '#ff4444',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            fontSize: '12px',
-            cursor: 'pointer'
-          }}
-        >
-          Reset Data
-        </button>
-      </div>
 
       <AIPlanningInterface
         selectedStyles={stylesData}
