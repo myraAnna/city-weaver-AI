@@ -139,7 +139,7 @@ const WelcomeScreen = ({
 // City Illustration Component
 const CityIllustration = () => {
   return (
-    <div className="relative w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
+    <div className="relative w-80 h-80 sm:w-96 sm:h-40 flex items-center justify-center">
       <dotlottie-wc
         src="https://lottie.host/75498afa-9fbf-4414-8783-a8f9c5102274/cRvBUAmLcQ.lottie"
         style={{width: '1000px', height: '1000px'}}
