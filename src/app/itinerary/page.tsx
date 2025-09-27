@@ -1,11 +1,12 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { MainItineraryInterface } from '@/components/features';
 import { mockWeatherData, contextAlerts } from '@/data/mock-itinerary';
 import { Stop } from '@/types';
 
-export default function ItineraryPage() {
+function ItineraryContent() {
   const searchParams = useSearchParams();
   const planId = searchParams.get('planId');
   const handleStartJourney = () => {
@@ -51,5 +52,13 @@ export default function ItineraryPage() {
       onRemoveStop={handleRemoveStop}
       onError={handleError}
     />
+  );
+}
+
+export default function ItineraryPage() {
+  return (
+    <Suspense fallback={<div>Loading itinerary...</div>}>
+      <ItineraryContent />
+    </Suspense>
   );
 }
